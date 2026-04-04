@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Fonte futurista -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <?!= include('DashboardStyles'); ?>
+</head>
+<body>
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <?!= include('DashboardTopbar'); ?>
+
+  <div class="container">
+    <?!= include('DashboardCards'); ?>
+    <?!= include('DashboardCharts'); ?>
+
+    <div class="history-panel">
+      <div class="history-head">
+        <div>
+          <div class="history-title">Últimas movimentações</div>
+          <div class="history-subtitle">Mudanças recentes registradas no dashboard</div>
+        </div>
+      </div>
+      <div id="recentHistoryList" class="history-list">
+        <div class="empty-state">
+          <strong>Sem movimentações</strong>
+          <div>Nenhum registro recente encontrado.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="criticalPanel" style="display:none;" class="critical-panel">
+      <div class="critical-title">⚠ Tarefas críticas</div>
+      <div id="criticalList" class="critical-list"></div>
+    </div>
+
+    <div class="layout">
+      <?!= include('DashboardTaskPanel'); ?>
+      <?!= include('DashboardDetailsPanel'); ?>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <?!= include('DashboardState'); ?>
+  <?!= include('DashboardUtils'); ?>
+  <?!= include('DashboardFilters'); ?>
+  <?!= include('DashboardChartsScript'); ?>
+  <?!= include('DashboardTasksScript'); ?>
+  <?!= include('DashboardDetailsScript'); ?>
+  <?!= include('DashboardCommentsScript'); ?>
+  <?!= include('DashboardRefreshScript'); ?>
+  <?!= include('DashboardInit'); ?>
+</body>
+</html>
