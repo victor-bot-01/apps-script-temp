@@ -559,6 +559,94 @@
       .search-area { padding: 18px 20px; }
       .results-area { padding: 0 20px 20px; }
     }
+
+    /* ── Toast "Copiado!" ───────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      background: #2e7d32; color: #fff;
+      padding: 10px 18px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 600; letter-spacing: 0.1px;
+      box-shadow: 0 4px 22px rgba(46,125,50,0.38);
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; transform: translateY(12px) scale(0.94);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      pointer-events: none;
+    }
+    .toast svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .toast--visible { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* ── Item com foco de teclado ───────────────────────────────────────────── */
+    .item { cursor: pointer; }
+    .item--focused {
+      border-color: var(--input-focus-border) !important;
+      box-shadow: 0 0 0 3px var(--input-focus-shadow), 0 4px 16px var(--item-hover-shadow) !important;
+      transform: translateY(-2px);
+    }
+
+    /* ── Recents header row ─────────────────────────────────────────────────── */
+    .recents-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .recents-label { margin-bottom: 0; }
+    .clear-all-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 10.5px; color: var(--text-muted);
+      padding: 2px 7px; border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .clear-all-btn:hover { color: var(--green-mid); background: var(--chip-bg); }
+
+    /* ── Status bar: lado direito ───────────────────────────────────────────── */
+    .status-right { display: flex; align-items: center; gap: 8px; }
+
+    .export-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--toggle-bg); border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 11.5px; font-weight: 500;
+      padding: 0 11px; height: 32px; border-radius: 8px; white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .export-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .export-btn:hover { background: var(--chip-bg); color: var(--green-mid); }
+
+    /* ── View btn ativo com outline pulsante ────────────────────────────────── */
+    @keyframes pulseOutline {
+      0%   { box-shadow: 0 0 0 0   rgba(46,125,50,0.7); }
+      65%  { box-shadow: 0 0 0 5px rgba(46,125,50,0); }
+      100% { box-shadow: 0 0 0 0   rgba(46,125,50,0); }
+    }
+    [data-theme="dark"] .view-btn.active { animation: pulseOutlineDark 1.9s ease infinite; }
+    @keyframes pulseOutlineDark {
+      0%   { box-shadow: 0 0 0 0   rgba(102,187,106,0.7); }
+      65%  { box-shadow: 0 0 0 5px rgba(102,187,106,0); }
+      100% { box-shadow: 0 0 0 0   rgba(102,187,106,0); }
+    }
+    .view-btn.active { animation: pulseOutline 1.9s ease infinite; }
+
+    /* ── Primeiro foco no campo de busca ────────────────────────────────────── */
+    @keyframes searchFirstFocus {
+      0%   { box-shadow: 0 0 0 0   rgba(67,160,71,0.55); }
+      40%  { box-shadow: 0 0 0 9px rgba(67,160,71,0.18); }
+      100% { box-shadow: 0 0 0 4px var(--input-focus-shadow); }
+    }
+    .search-box--first-focus {
+      animation: searchFirstFocus 0.75s ease forwards;
+    }
+
+    /* ── Transição fade+scale ao trocar de view ─────────────────────────────── */
+    .items-list--leaving {
+      opacity: 0 !important;
+      transform: scale(0.97) !important;
+      transition: opacity 0.17s ease, transform 0.17s ease !important;
+    }
+    .items-list--entering {
+      animation: itemsEnter 0.22s ease both;
+    }
+    @keyframes itemsEnter {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 
@@ -665,7 +753,10 @@
 
         <div id="recentsWrap" style="display:none">
           <div class="recents-wrap">
-            <div class="recents-label">Buscas recentes</div>
+            <div class="recents-header">
+              <div class="recents-label">Buscas recentes</div>
+              <button class="clear-all-btn" id="clearAllBtn" type="button">Limpar tudo</button>
+            </div>
             <div class="recents" id="recents"></div>
           </div>
         </div>
@@ -682,25 +773,35 @@
               Buscando…
             </div>
           </div>
-          <div class="view-toggles">
-            <button class="view-btn" id="btnGrid" title="Vista em grade" aria-label="Grade">
+          <div class="status-right">
+            <button class="export-btn" id="exportBtn" title="Copiar todos os resultados">
               <svg viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
+              Exportar
             </button>
-            <button class="view-btn" id="btnList" title="Vista em lista" aria-label="Lista">
-              <svg viewBox="0 0 24 24">
-                <line x1="8" y1="6"  x2="21" y2="6"/>
-                <line x1="8" y1="12" x2="21" y2="12"/>
-                <line x1="8" y1="18" x2="21" y2="18"/>
-                <line x1="3" y1="6"  x2="3.01" y2="6"/>
-                <line x1="3" y1="12" x2="3.01" y2="12"/>
-                <line x1="3" y1="18" x2="3.01" y2="18"/>
-              </svg>
-            </button>
+            <div class="view-toggles">
+              <button class="view-btn" id="btnGrid" title="Vista em grade" aria-label="Grade">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </button>
+              <button class="view-btn" id="btnList" title="Vista em lista" aria-label="Lista">
+                <svg viewBox="0 0 24 24">
+                  <line x1="8" y1="6"  x2="21" y2="6"/>
+                  <line x1="8" y1="12" x2="21" y2="12"/>
+                  <line x1="8" y1="18" x2="21" y2="18"/>
+                  <line x1="3" y1="6"  x2="3.01" y2="6"/>
+                  <line x1="3" y1="12" x2="3.01" y2="12"/>
+                  <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -708,6 +809,12 @@
 
       </div>
     </div>
+  </div>
+
+  <!-- Toast de feedback -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">Copiado!</span>
   </div>
 
   <script>
@@ -765,17 +872,26 @@
       document.getElementById("btnList").classList.toggle("active", v === "list");
       var list = document.querySelector(".items-list");
       if (list) {
-        list.classList.remove("view-grid", "view-list");
-        list.classList.add("view-" + v);
+        list.classList.add("items-list--leaving");
+        setTimeout(function () {
+          list.classList.remove("items-list--leaving", "view-grid", "view-list");
+          list.classList.add("view-" + v, "items-list--entering");
+          setTimeout(function () { list.classList.remove("items-list--entering"); }, 220);
+        }, 170);
       }
     }
 
     /* ──────────────────────────────────────────────────────────────────────────
        VARIÁVEIS
     ────────────────────────────────────────────────────────────────────────── */
-    var RECENTS_KEY  = "inv_recents";
-    var MAX_RECENTS  = 6;
+    var RECENTS_KEY   = "inv_recents";
+    var MAX_RECENTS   = 6;
     var debounceTimer = null;
+    var searchStartTime = 0;
+    var lastResults   = [];
+    var focusedIdx    = -1;
+    var searchFocusedOnce = false;
+    var toastTimer    = null;
 
     var searchInput = document.getElementById("search");
     var clearBtn    = document.getElementById("clearBtn");
@@ -785,6 +901,18 @@
     var statusBar   = document.getElementById("statusBar");
     var recentsEl   = document.getElementById("recents");
     var recentsWrap = document.getElementById("recentsWrap");
+
+    document.getElementById("exportBtn").addEventListener("click", exportResults);
+    document.getElementById("clearAllBtn").addEventListener("click", clearAllRecents);
+
+    /* Primeiro foco no campo */
+    searchInput.addEventListener("focus", function () {
+      if (!searchFocusedOnce) {
+        searchFocusedOnce = true;
+        searchInput.classList.add("search-box--first-focus");
+        setTimeout(function () { searchInput.classList.remove("search-box--first-focus"); }, 800);
+      }
+    });
 
     /* ──────────────────────────────────────────────────────────────────────────
        ATALHOS DE TECLADO
@@ -797,6 +925,26 @@
       }
       if (e.key === "Escape" && document.activeElement === searchInput) {
         searchInput.blur();
+        focusedIdx = -1;
+        clearItemFocus();
+      }
+
+      /* Navegação por setas ↑↓ nos itens */
+      var items = document.querySelectorAll(".items-list .item");
+      if (!items.length) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusedIdx = Math.min(focusedIdx + 1, items.length - 1);
+        setItemFocus(items, focusedIdx);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusedIdx = Math.max(focusedIdx - 1, 0);
+        setItemFocus(items, focusedIdx);
+      } else if (e.key === "Enter" && focusedIdx >= 0 && document.activeElement !== searchInput) {
+        e.preventDefault();
+        var focused = items[focusedIdx];
+        if (focused) copyText(focused.dataset.produto);
       }
     });
 
@@ -853,6 +1001,11 @@
     function removeRecent(termo) {
       var recents = getRecents().filter(function (r) { return r !== termo; });
       localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+      renderRecents();
+    }
+
+    function clearAllRecents() {
+      localStorage.removeItem(RECENTS_KEY);
       renderRecents();
     }
 
@@ -915,6 +1068,8 @@
       setLoading(true);
       showStatusBar();
       resultsEl.innerHTML = "";
+      focusedIdx = -1;
+      searchStartTime = Date.now();
       google.script.run
         .withSuccessHandler(function (data) { render(data, termo); })
         .withFailureHandler(onError)
@@ -927,19 +1082,24 @@
     function render(data, termo) {
       setLoading(false);
       resultsEl.innerHTML = "";
+      focusedIdx = -1;
 
       if (!data || data.length === 0) {
+        lastResults = [];
         hideStatusBar();
         resultsEl.appendChild(buildState("empty"));
         return;
       }
 
+      lastResults = data;
       saveRecent(termo);
 
+      var elapsed = Date.now() - searchStartTime;
       var total = data.length;
       countEl.innerHTML =
         "<strong>" + total + "</strong> produto" + (total !== 1 ? "s" : "") +
-        " encontrado" + (total !== 1 ? "s" : "");
+        " encontrado" + (total !== 1 ? "s" : "") +
+        " <span style='opacity:0.5;font-size:11px'>(" + elapsed + " ms)</span>";
       showStatusBar();
 
       var palavras = termo.toLowerCase()
@@ -954,6 +1114,9 @@
         var div = document.createElement("div");
         div.className = "item";
         div.style.animationDelay = (i * 38) + "ms";
+        div.dataset.produto = item.produto;
+        div.title = "Clique para copiar";
+        div.addEventListener("click", function () { copyText(item.produto); });
 
         var iconWrap = document.createElement("div");
         iconWrap.className = "item-icon";
@@ -1103,6 +1266,59 @@
       }
 
       return wrap;
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       CLIPBOARD / TOAST
+    ────────────────────────────────────────────────────────────────────────── */
+    function copyText(text, msg) {
+      var label = msg || "Copiado!";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { showToast(label); });
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); showToast(label); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    }
+
+    function showToast(msg) {
+      var toast = document.getElementById("toast");
+      document.getElementById("toastMsg").textContent = msg;
+      toast.classList.add("toast--visible");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove("toast--visible"); }, 2000);
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       EXPORTAR
+    ────────────────────────────────────────────────────────────────────────── */
+    function exportResults() {
+      if (!lastResults.length) return;
+      var text = lastResults.map(function (r) { return r.produto + " — " + r.caixa; }).join("\n");
+      copyText(text, "Exportado!");
+    }
+
+    /* ──────────────────────────────────────────────────────────────────────────
+       NAVEGAÇÃO POR TECLADO
+    ────────────────────────────────────────────────────────────────────────── */
+    function setItemFocus(items, idx) {
+      items.forEach(function (el, i) {
+        el.classList.toggle("item--focused", i === idx);
+      });
+      if (items[idx]) {
+        items[idx].scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+
+    function clearItemFocus() {
+      document.querySelectorAll(".items-list .item").forEach(function (el) {
+        el.classList.remove("item--focused");
+      });
     }
 
     /* ──────────────────────────────────────────────────────────────────────────
