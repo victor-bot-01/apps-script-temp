@@ -6,108 +6,201 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── Body / fundo ──────────────────────────────────────────────────────────── */
     body {
-      background: #e8eaed;
+      background: #f0f2f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       color: #333;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 48px 16px 72px;
+      padding: 52px 16px 80px;
+      position: relative;
+      overflow-x: hidden;
     }
 
-    .container { width: 100%; max-width: 640px; }
+    /* ── Partículas hexagonais animadas no background ───────────────────────────── */
+    .bg-particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
 
-    /* ── Header — fora do card ──────────────────────────────────────────────── */
+    .hex {
+      position: absolute;
+      opacity: 0;
+      animation: floatHex linear infinite;
+    }
+
+    .hex svg { display: block; }
+
+    .hex:nth-child(1)  { left: 4%;   animation-duration: 22s; animation-delay: 0s;    width: 38px; }
+    .hex:nth-child(2)  { left: 12%;  animation-duration: 28s; animation-delay: -6s;   width: 24px; }
+    .hex:nth-child(3)  { left: 22%;  animation-duration: 18s; animation-delay: -3s;   width: 48px; }
+    .hex:nth-child(4)  { left: 33%;  animation-duration: 32s; animation-delay: -11s;  width: 20px; }
+    .hex:nth-child(5)  { left: 44%;  animation-duration: 24s; animation-delay: -7s;   width: 34px; }
+    .hex:nth-child(6)  { left: 55%;  animation-duration: 20s; animation-delay: -2s;   width: 28px; }
+    .hex:nth-child(7)  { left: 64%;  animation-duration: 26s; animation-delay: -14s;  width: 44px; }
+    .hex:nth-child(8)  { left: 73%;  animation-duration: 30s; animation-delay: -5s;   width: 22px; }
+    .hex:nth-child(9)  { left: 82%;  animation-duration: 21s; animation-delay: -9s;   width: 36px; }
+    .hex:nth-child(10) { left: 90%;  animation-duration: 27s; animation-delay: -1s;   width: 18px; }
+    .hex:nth-child(11) { left: 8%;   animation-duration: 35s; animation-delay: -18s;  width: 16px; }
+    .hex:nth-child(12) { left: 50%;  animation-duration: 23s; animation-delay: -20s;  width: 30px; }
+
+    @keyframes floatHex {
+      0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
+      5%   { opacity: 0.18; }
+      90%  { opacity: 0.12; }
+      100% { transform: translateY(-12vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── Container principal ────────────────────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: 860px;
+      position: relative;
+      z-index: 1;
+      animation: fadeDown 0.5s ease both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Header fora do card ─────────────────────────────────────────────────────── */
     .header {
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       padding: 0 4px;
+      animation: fadeDown 0.5s 0.05s ease both;
     }
 
     .header-icon {
-      width: 52px; height: 52px;
+      width: 54px; height: 54px;
       background: linear-gradient(135deg, #2e7d32, #43a047);
-      border-radius: 14px;
+      border-radius: 15px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       box-shadow:
-        0 4px 16px rgba(46,125,50,0.38),
+        0 4px 18px rgba(46,125,50,0.40),
         0 1px 4px  rgba(46,125,50,0.22);
     }
 
     .header-icon svg {
-      width: 24px; height: 24px;
+      width: 26px; height: 26px;
       fill: none; stroke: #fff;
       stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
     }
 
     .title {
-      font-size: 22px; font-weight: 700;
-      color: #1a1a1a; letter-spacing: -0.4px;
+      font-size: 23px; font-weight: 700;
+      color: #1a1a1a; letter-spacing: -0.5px;
     }
 
     .subtitle { font-size: 12.5px; color: #888; margin-top: 3px; }
 
     .kbd {
       display: inline-flex; align-items: center;
-      background: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.8);
       border: 1px solid #ccc; border-bottom-width: 2px;
       border-radius: 4px; padding: 1px 6px;
       font-size: 11px; font-family: monospace; color: #555; line-height: 1.6;
     }
 
-    /* ── Card ───────────────────────────────────────────────────────────────── */
+    /* ── Card ─────────────────────────────────────────────────────────────────────── */
     .card {
       background: #fff;
       border-radius: 22px;
       box-shadow:
-        0 1px 3px  rgba(0,0,0,0.06),
-        0 6px 20px rgba(0,0,0,0.08),
-        0 20px 60px rgba(0,0,0,0.05);
+        0 2px 4px   rgba(0,0,0,0.06),
+        0 8px 28px  rgba(0,0,0,0.10),
+        0 32px 72px rgba(0,0,0,0.08);
+      overflow: hidden;
+      animation: fadeDown 0.5s 0.1s ease both;
+    }
+
+    /* ── Faixa decorativa verde no topo do card ───────────────────────────────────── */
+    .card-banner {
+      height: 56px;
+      background: linear-gradient(100deg, #1b5e20 0%, #2e7d32 45%, #43a047 100%);
+      position: relative;
       overflow: hidden;
     }
 
-    /* ── Search area (seção superior com divisória) ─────────────────────────── */
+    .card-banner svg.pattern {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      opacity: 0.18;
+    }
+
+    .card-banner-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 10px;
+    }
+
+    .card-banner-label svg {
+      width: 20px; height: 20px;
+      stroke: rgba(255,255,255,0.85);
+      fill: none; stroke-width: 1.8;
+      stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .card-banner-label span {
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.88);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Área de busca ────────────────────────────────────────────────────────────── */
     .search-area {
-      padding: 28px 32px;
+      padding: 26px 32px;
       border-bottom: 1px solid #f0f0f0;
     }
 
     .search-wrapper { position: relative; }
 
     .search-icon {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      width: 17px; height: 17px; pointer-events: none; color: #b8b8b8;
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      width: 19px; height: 19px; pointer-events: none; color: #b0b0b0;
     }
 
     .search-box {
       width: 100%;
-      padding: 13px 44px 13px 42px;
-      font-size: 15px;
-      border-radius: 12px;
-      border: 1.5px solid #e6e6e6;
+      height: 56px;
+      padding: 0 48px 0 48px;
+      font-size: 16px;
+      border-radius: 14px;
+      border: 1.5px solid #e4e4e4;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-      background: #f8f9fa;
+      transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+      background: #f7f8fa;
       color: #1a1a1a;
     }
 
-    .search-box::placeholder { color: #c0c0c0; }
+    .search-box::placeholder { color: #bbb; }
 
     .search-box:focus {
       background: #fff;
       border-color: #43a047;
-      box-shadow: 0 0 0 3px rgba(67,160,71,0.12);
+      box-shadow: 0 0 0 4px rgba(67,160,71,0.13);
     }
 
     .clear-btn {
-      position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
       background: #e4e4e4; border: none; cursor: pointer; color: #888;
-      width: 24px; height: 24px; border-radius: 50%;
+      width: 26px; height: 26px; border-radius: 50%;
       display: none; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
     }
@@ -115,7 +208,7 @@
     .clear-btn:hover { background: #d0d0d0; color: #333; }
     .clear-btn.visible { display: flex; }
 
-    /* ── Chips de buscas recentes ───────────────────────────────────────────── */
+    /* ── Chips de buscas recentes ─────────────────────────────────────────────────── */
     .recents-wrap { margin-top: 16px; }
 
     .recents-label {
@@ -154,10 +247,10 @@
 
     .chip-remove:hover { color: #2e7d32; background: rgba(46,125,50,0.12); }
 
-    /* ── Área de resultados ─────────────────────────────────────────────────── */
-    .results-area { padding: 0 32px 28px; }
+    /* ── Área de resultados ───────────────────────────────────────────────────────── */
+    .results-area { padding: 0 28px 28px; }
 
-    /* ── Status bar (aparece/some com transição) ────────────────────────────── */
+    /* ── Status bar ──────────────────────────────────────────────────────────────── */
     .status-bar {
       display: flex; align-items: center; justify-content: space-between;
       overflow: hidden;
@@ -166,7 +259,7 @@
     }
 
     .status-bar.visible {
-      max-height: 32px; opacity: 1; margin-bottom: 10px;
+      max-height: 32px; opacity: 1; margin-bottom: 12px;
       margin-top: 20px;
     }
 
@@ -184,38 +277,47 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Lista de itens ─────────────────────────────────────────────────────── */
-    .items-list { display: flex; flex-direction: column; gap: 7px; }
+    /* ── Grid de resultados — 2 colunas quando há espaço ─────────────────────────── */
+    .items-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
 
+    @media (min-width: 560px) {
+      .items-list { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Item ────────────────────────────────────────────────────────────────────── */
     .item {
-      padding: 12px 14px;
-      border-radius: 10px;
+      padding: 13px 15px;
+      border-radius: 12px;
       background: #f9fafb;
       border: 1.5px solid #ebebeb;
       display: flex; align-items: center; gap: 12px;
-      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-      animation: slideIn 0.2s ease both;
+      transition: border-color 0.17s, box-shadow 0.17s, transform 0.17s;
+      animation: itemIn 0.25s ease both;
     }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes itemIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
     }
 
     .item:hover {
       border-color: #a5d6a7;
-      box-shadow: 0 3px 12px rgba(46,125,50,0.1);
-      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(46,125,50,0.11);
+      transform: translateY(-2px);
     }
 
     .item-icon {
-      width: 36px; height: 36px;
-      background: #e8f5e9; border-radius: 9px;
+      width: 38px; height: 38px;
+      background: #e8f5e9; border-radius: 10px;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
 
     .item-icon svg {
-      width: 17px; height: 17px;
+      width: 18px; height: 18px;
       stroke: #2e7d32; fill: none;
       stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
     }
@@ -223,7 +325,7 @@
     .item-info { flex: 1; min-width: 0; }
 
     .produto {
-      font-size: 14.5px; font-weight: 500; color: #1a1a1a;
+      font-size: 14px; font-weight: 500; color: #1a1a1a;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
@@ -235,8 +337,8 @@
     .caixa-badge {
       display: inline-flex; align-items: center; gap: 4px;
       background: #f1f8f1; color: #388e3c;
-      border-radius: 5px; padding: 2px 8px;
-      font-size: 11.5px; font-weight: 500; margin-top: 4px;
+      border-radius: 6px; padding: 3px 8px;
+      font-size: 11.5px; font-weight: 500; margin-top: 5px;
     }
 
     .caixa-badge svg {
@@ -245,18 +347,20 @@
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
 
-    /* ── Estados visuais (hint / vazio / min-chars) ─────────────────────────── */
-    .state {
-      text-align: center;
+    /* ── Estados visuais ─────────────────────────────────────────────────────────── */
+    .state { text-align: center; }
+    .state-hint  { padding: 56px 20px 64px; animation: fadeIn 0.3s ease both; }
+    .state-empty { padding: 56px 20px 64px; animation: fadeIn 0.3s ease both; }
+    .state-min   { padding: 32px 20px 40px; animation: fadeIn 0.3s ease both; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
-    .state-hint  { padding: 56px 20px 64px; }
-    .state-empty { padding: 56px 20px 64px; }
-    .state-min   { padding: 32px 20px 40px; }
-
     .state-icon {
-      width: 60px; height: 60px;
-      border-radius: 16px;
+      width: 64px; height: 64px;
+      border-radius: 18px;
       margin: 0 auto 16px;
       display: flex; align-items: center; justify-content: center;
     }
@@ -266,22 +370,19 @@
       stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
     }
 
-    /* hint — azul-lavanda */
-    .state-hint .state-icon { background: #f0f4ff; }
-    .state-hint .state-icon svg { width: 28px; height: 28px; stroke: #7986cb; }
+    .state-hint .state-icon  { background: #f0f4ff; }
+    .state-hint .state-icon svg  { width: 30px; height: 30px; stroke: #7986cb; }
 
-    /* empty — âmbar */
     .state-empty .state-icon { background: #fff8e1; }
-    .state-empty .state-icon svg { width: 28px; height: 28px; stroke: #ffb300; }
+    .state-empty .state-icon svg { width: 30px; height: 30px; stroke: #ffb300; }
 
-    /* min — cinza neutro */
-    .state-min .state-icon { background: #f5f5f5; }
-    .state-min .state-icon svg { width: 24px; height: 24px; stroke: #ccc; }
+    .state-min .state-icon   { background: #f5f5f5; }
+    .state-min .state-icon svg   { width: 26px; height: 26px; stroke: #ccc; }
 
-    .state-title { font-size: 14.5px; font-weight: 600; color: #999; margin-bottom: 5px; }
+    .state-title { font-size: 15px; font-weight: 600; color: #999; margin-bottom: 5px; }
     .state-sub   { font-size: 12.5px; color: #c0c0c0; line-height: 1.55; }
 
-    /* ── Erro ───────────────────────────────────────────────────────────────── */
+    /* ── Erro ─────────────────────────────────────────────────────────────────────── */
     .error {
       margin-top: 20px;
       padding: 14px 16px;
@@ -302,6 +403,23 @@
 </head>
 
 <body>
+
+  <!-- Partículas / hexágonos flutuantes no fundo -->
+  <div class="bg-particles" aria-hidden="true">
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#43a047" stroke-width="5"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#2e7d32" stroke-width="5"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="#43a047" stroke="none" opacity="0.5"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#388e3c" stroke-width="6"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#43a047" stroke-width="4"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="#2e7d32" stroke="none" opacity="0.4"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#66bb6a" stroke-width="5"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#2e7d32" stroke-width="4"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="#43a047" stroke="none" opacity="0.35"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#388e3c" stroke-width="5"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#66bb6a" stroke-width="4"/></svg></div>
+    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="#43a047" stroke-width="6"/></svg></div>
+  </div>
+
   <div class="container">
 
     <!-- Header fora do card -->
@@ -327,7 +445,37 @@
     <!-- Card -->
     <div class="card">
 
-      <!-- Seção de busca com divisória inferior -->
+      <!-- Faixa decorativa verde com padrão geométrico SVG inline -->
+      <div class="card-banner">
+        <!-- Padrão geométrico: losangos/triângulos repetidos -->
+        <svg class="pattern" viewBox="0 0 860 56" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linhas diagonais repetidas -->
+          <defs>
+            <pattern id="geo" x="0" y="0" width="56" height="56" patternUnits="userSpaceOnUse">
+              <!-- Hexágono pequeno -->
+              <polygon points="28,2 52,15 52,41 28,54 4,41 4,15" fill="none" stroke="#fff" stroke-width="1.2"/>
+              <!-- Cruz central -->
+              <line x1="28" y1="2"  x2="28" y2="54" stroke="#fff" stroke-width="0.6"/>
+              <line x1="4"  y1="28" x2="52" y2="28" stroke="#fff" stroke-width="0.6"/>
+              <!-- Diagonais -->
+              <line x1="4"  y1="15" x2="52" y2="41" stroke="#fff" stroke-width="0.5"/>
+              <line x1="4"  y1="41" x2="52" y2="15" stroke="#fff" stroke-width="0.5"/>
+              <!-- Losango central -->
+              <polygon points="28,8 48,28 28,48 8,28" fill="none" stroke="#fff" stroke-width="0.8"/>
+            </pattern>
+          </defs>
+          <rect width="860" height="56" fill="url(#geo)"/>
+        </svg>
+        <div class="card-banner-label">
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>Localize produtos por nome ou combinação de termos</span>
+        </div>
+      </div>
+
+      <!-- Seção de busca -->
       <div class="search-area">
 
         <div class="search-wrapper">
@@ -560,7 +708,7 @@
       data.forEach(function(item, i) {
         var div = document.createElement("div");
         div.className = "item";
-        div.style.animationDelay = (i * 35) + "ms";
+        div.style.animationDelay = (i * 40) + "ms";
 
         var iconWrap = document.createElement("div");
         iconWrap.className = "item-icon";
