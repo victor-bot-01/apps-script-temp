@@ -1,1209 +1,1048 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="light" data-density="comfortable">
 <head>
   <meta charset="UTF-8">
   <base target="_top">
   <style>
-    /* ╔══════════════════════════════════════════════════════════════════════════╗
-       ║  CSS TOKENS — light / dark                                              ║
-       ╚══════════════════════════════════════════════════════════════════════════╝ */
-    :root {
-      --bg:                  #eef0f3;
-      --card:                #ffffff;
-      --card-border:         rgba(0,0,0,0.07);
-      --text-primary:        #1a1a1a;
-      --text-secondary:      #555;
-      --text-muted:          #aaa;
-      --input-bg:            #f5f6f8;
-      --input-border:        #e0e0e0;
-      --input-focus-border:  #43a047;
-      --input-focus-shadow:  rgba(67,160,71,0.14);
-      --item-bg:             #f9fafb;
-      --item-border:         #ebebeb;
-      --item-hover-border:   #a5d6a7;
-      --item-hover-shadow:   rgba(46,125,50,0.14);
-      --chip-bg:             #f1f8f1;
-      --chip-border:         #c8e6c9;
-      --badge-bg:            #f1f8f1;
-      --badge-color:         #388e3c;
-      --mark-bg:             #fff59d;
-      --mark-color:          inherit;
-      --scrollbar-thumb:     #c8e6c9;
-      --scrollbar-track:     transparent;
-      --kbd-bg:              rgba(255,255,255,0.85);
-      --kbd-border:          #d0d0d0;
-      --toggle-bg:           #ededf0;
-      --toggle-color:        #555;
-      --divider:             #f0f0f0;
-      --shadow-card:         0 2px 4px rgba(0,0,0,0.06), 0 8px 28px rgba(0,0,0,0.10), 0 32px 72px rgba(0,0,0,0.08);
-      --green-deep:          #1b5e20;
-      --green-mid:           #2e7d32;
-      --green-base:          #43a047;
-      --green-light:         #66bb6a;
-      --green-pale:          #a5d6a7;
-      --state-hint-bg:       #f0f4ff;
-      --state-hint-stroke:   #7986cb;
-      --state-empty-bg:      #fff8e1;
-      --state-empty-stroke:  #ffb300;
-      --state-min-bg:        #f5f5f5;
-      --state-min-stroke:    #ccc;
-      --cube-border:         rgba(67,160,71,0.55);
-      --cube-face:           rgba(67,160,71,0.07);
-      --hex-stroke:          #2e7d32;
-    }
-
-    [data-theme="dark"] {
-      --bg:                  #0e1a0f;
-      --card:                #162318;
-      --card-border:         rgba(255,255,255,0.06);
-      --text-primary:        #e8f5e9;
-      --text-secondary:      #a5d6a7;
-      --text-muted:          #558b5a;
-      --input-bg:            #1a2e1c;
-      --input-border:        #2d4830;
-      --input-focus-border:  #66bb6a;
-      --input-focus-shadow:  rgba(102,187,106,0.18);
-      --item-bg:             #1a2e1c;
-      --item-border:         #2a3d2c;
-      --item-hover-border:   #66bb6a;
-      --item-hover-shadow:   rgba(102,187,106,0.16);
-      --chip-bg:             #1a2e1c;
-      --chip-border:         #2d4830;
-      --badge-bg:            #1a2e1c;
-      --badge-color:         #81c784;
-      --mark-bg:             rgba(255,245,0,0.22);
-      --mark-color:          #fff59d;
-      --scrollbar-thumb:     #2d4830;
-      --scrollbar-track:     transparent;
-      --kbd-bg:              rgba(255,255,255,0.07);
-      --kbd-border:          #3a5a3c;
-      --toggle-bg:           #1a2e1c;
-      --toggle-color:        #81c784;
-      --divider:             #1e3320;
-      --shadow-card:         0 2px 4px rgba(0,0,0,0.35), 0 8px 28px rgba(0,0,0,0.45), 0 32px 72px rgba(0,0,0,0.30);
-      --green-deep:          #1b5e20;
-      --green-mid:           #2e7d32;
-      --green-base:          #43a047;
-      --green-light:         #66bb6a;
-      --green-pale:          #388e3c;
-      --state-hint-bg:       #0f142a;
-      --state-hint-stroke:   #9fa8da;
-      --state-empty-bg:      #251a00;
-      --state-empty-stroke:  #ffc107;
-      --state-min-bg:        #1a2e1c;
-      --state-min-stroke:    #3a5a3c;
-      --cube-border:         rgba(102,187,106,0.50);
-      --cube-face:           rgba(102,187,106,0.06);
-      --hex-stroke:          #43a047;
-    }
-
-    /* Alto contraste */
-    .high-contrast {
-      --text-primary: #000 !important; --text-secondary: #111 !important;
-      --text-muted: #333 !important; --item-border: #444 !important;
-      --card-border: #333 !important; --input-border: #444 !important;
-    }
-    [data-theme="dark"].high-contrast {
-      --text-primary: #fff !important; --text-secondary: #eee !important;
-      --text-muted: #bbb !important; --item-border: #66bb6a !important;
-    }
-
-    /* ── Reset ─────────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Scrollbar ──────────────────────────────────────────────────────────── */
-    ::-webkit-scrollbar               { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track         { background: var(--scrollbar-track); }
-    ::-webkit-scrollbar-thumb         { background: var(--scrollbar-thumb); border-radius: 6px; }
-    ::-webkit-scrollbar-thumb:hover   { background: var(--green-pale); }
-    *  { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
+    /* ══ VARIÁVEIS DE TEMA ══════════════════════════════════════════════════ */
+    :root {
+      --bg: #eef0f3;
+      --surface: rgba(255,255,255,0.88);
+      --surface2: #f9fafb;
+      --surface3: #f1f3f5;
+      --border: rgba(0,0,0,0.08);
+      --border2: rgba(0,0,0,0.05);
+      --text: #1a1a2e;
+      --text2: #555;
+      --text3: #999;
+      --primary: #2e7d32;
+      --primary-l: #43a047;
+      --primary-glow: rgba(46,125,50,0.16);
+      --primary-chip: #e8f5e9;
+      --primary-chip-b: #c8e6c9;
+      --accent: #1565c0;
+      --mark: #fff176;
+      --err-bg: #fff5f5;
+      --err-b: #ffcdd2;
+      --err-t: #c62828;
+      --radius: 22px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06),0 6px 24px rgba(0,0,0,0.08),0 24px 64px rgba(0,0,0,0.05);
+      --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117; --surface: rgba(22,27,34,0.95); --surface2: #1c2128;
+      --surface3: #21262d; --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.05);
+      --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+      --primary: #4caf50; --primary-l: #66bb6a; --primary-glow: rgba(76,175,80,0.18);
+      --primary-chip: rgba(76,175,80,0.12); --primary-chip-b: rgba(76,175,80,0.28);
+      --accent: #5c9dff; --mark: rgba(255,241,118,0.28);
+      --err-bg: rgba(198,40,40,0.1); --err-b: rgba(198,40,40,0.3); --err-t: #ef9a9a;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4),0 6px 24px rgba(0,0,0,0.45),0 24px 64px rgba(0,0,0,0.35);
+    }
+    [data-density="compact"] .item { padding: 8px 12px !important; }
+    [data-density="compact"] .item-icon { width: 30px !important; height: 30px !important; }
+    [data-density="compact"] .produto { font-size: 13px !important; }
+    [data-hc="true"] { --border: rgba(0,0,0,0.35); }
+    [data-hc="true"][data-theme="dark"] { --primary: #00e676; --border: rgba(255,255,255,0.35); }
 
-    /* ── Body ───────────────────────────────────────────────────────────────── */
+    /* ══ BODY & LAYOUT ══════════════════════════════════════════════════════ */
+    html { scroll-behavior: smooth; }
     body {
-      background: var(--bg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex; justify-content: center; align-items: flex-start;
-      padding: 0 16px 80px;
-      position: relative; overflow-x: hidden;
-      transition: background 0.3s, color 0.3s;
+      background: var(--bg); font-family: var(--font); color: var(--text);
+      min-height: 100vh; display: flex; justify-content: center;
+      align-items: flex-start; padding: 40px 20px 100px;
+      transition: background .25s, color .25s; position: relative; overflow-x: hidden;
+    }
+    .container { width: 100%; max-width: 1060px; position: relative; z-index: 1; }
+
+    /* ══ ORBS ANIMADOS ══════════════════════════════════════════════════════ */
+    .bg-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(90px); opacity: .32;
+      animation: orbFloat 24s ease-in-out infinite;
+    }
+    .orb-1 { width:560px;height:560px;background:radial-gradient(circle,#a5d6a7,transparent 70%);top:-180px;left:-120px;animation-duration:26s; }
+    .orb-2 { width:480px;height:480px;background:radial-gradient(circle,#bbdefb,transparent 70%);top:35%;right:-80px;animation-duration:32s;animation-delay:-9s; }
+    .orb-3 { width:380px;height:380px;background:radial-gradient(circle,#f8bbd0,transparent 70%);bottom:-80px;left:30%;animation-duration:20s;animation-delay:-14s; }
+    [data-theme="dark"] .orb-1 { background:radial-gradient(circle,rgba(76,175,80,.45),transparent 70%); }
+    [data-theme="dark"] .orb-2 { background:radial-gradient(circle,rgba(21,101,192,.3),transparent 70%); }
+    [data-theme="dark"] .orb-3 { background:radial-gradient(circle,rgba(156,39,176,.2),transparent 70%); }
+    @keyframes orbFloat {
+      0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(28px,-38px) scale(1.04)}
+      50%{transform:translate(-18px,18px) scale(.97)} 75%{transform:translate(38px,10px) scale(1.02)}
     }
 
-    /* ── Hexágonos flutuantes ───────────────────────────────────────────────── */
-    .bg-particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-    .hex { position: absolute; opacity: 0; animation: floatHex linear infinite; }
-    .hex svg { display: block; }
-
-    .hex:nth-child(1)  { left:  3%; animation-duration: 21s; animation-delay:   0s; width: 38px; }
-    .hex:nth-child(2)  { left: 11%; animation-duration: 28s; animation-delay:  -5s; width: 22px; }
-    .hex:nth-child(3)  { left: 20%; animation-duration: 17s; animation-delay:  -3s; width: 48px; }
-    .hex:nth-child(4)  { left: 31%; animation-duration: 32s; animation-delay: -11s; width: 18px; }
-    .hex:nth-child(5)  { left: 43%; animation-duration: 23s; animation-delay:  -7s; width: 34px; }
-    .hex:nth-child(6)  { left: 55%; animation-duration: 19s; animation-delay:  -2s; width: 26px; }
-    .hex:nth-child(7)  { left: 64%; animation-duration: 26s; animation-delay: -14s; width: 44px; }
-    .hex:nth-child(8)  { left: 73%; animation-duration: 30s; animation-delay:  -4s; width: 20px; }
-    .hex:nth-child(9)  { left: 82%; animation-duration: 22s; animation-delay:  -9s; width: 36px; }
-    .hex:nth-child(10) { left: 90%; animation-duration: 27s; animation-delay:  -1s; width: 16px; }
-    .hex:nth-child(11) { left:  7%; animation-duration: 35s; animation-delay: -18s; width: 14px; }
-    .hex:nth-child(12) { left: 49%; animation-duration: 24s; animation-delay: -20s; width: 30px; }
-    .hex:nth-child(13) { left: 96%; animation-duration: 20s; animation-delay: -12s; width: 42px; }
-    .hex:nth-child(14) { left: 26%; animation-duration: 33s; animation-delay: -24s; width: 24px; }
-
-    @keyframes floatHex {
-      0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
-      6%   { opacity: 0.13; }
-      88%  { opacity: 0.09; }
-      100% { transform: translateY(-14vh) rotate(360deg); opacity: 0; }
-    }
-    body.is-loading .bg-particles { animation: hexPulse 0.85s ease infinite; }
-    @keyframes hexPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
-
-    /* ── Container ──────────────────────────────────────────────────────────── */
-    .container { width: 100%; max-width: 1120px; position: relative; z-index: 1; animation: fadeDown 0.44s ease both; }
-    @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ── Topbar ─────────────────────────────────────────────────────────────── */
-    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 20px 2px 16px; animation: fadeDown 0.44s 0.04s ease both; }
-    .topbar-left { display: flex; align-items: center; gap: 14px; }
-    .header-icon-wrap { position: relative; flex-shrink: 0; }
+    /* ══ TOP BAR ════════════════════════════════════════════════════════════ */
+    .top-bar { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding:0 4px;flex-wrap:wrap;gap:12px; }
+    .header  { display:flex;align-items:center;gap:14px; }
     .header-icon {
-      width: 50px; height: 50px;
-      background: linear-gradient(135deg, #2e7d32, #43a047);
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(46,125,50,0.42), 0 1px 4px rgba(46,125,50,0.20);
+      width:52px;height:52px;background:linear-gradient(135deg,#2e7d32,#43a047);
+      border-radius:14px;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;box-shadow:0 4px 16px rgba(46,125,50,.38);cursor:default;
     }
-    .header-icon svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .header-icon.spin { animation: spinOnce .5s ease; }
+    @keyframes spinOnce { 0%{transform:rotate(0) scale(1)} 50%{transform:rotate(180deg) scale(1.12)} 100%{transform:rotate(360deg) scale(1)} }
+    .header-icon svg { width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+    .greeting { font-size:11.5px;color:var(--text3);margin-bottom:2px; }
+    .title    { font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.4px; }
 
-    /* Counter badge */
-    .result-badge {
-      position: absolute; top: -5px; right: -5px;
-      min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px;
-      background: var(--green-base); color: #fff;
-      font-size: 10px; font-weight: 800; line-height: 18px; text-align: center;
-      opacity: 0; transform: scale(0);
-      transition: opacity 0.2s, transform 0.2s;
-      pointer-events: none;
+    /* ══ BOTÕES DO CABEÇALHO ════════════════════════════════════════════════ */
+    .header-actions { display:flex;align-items:center;gap:7px;flex-wrap:wrap; }
+    .stats-pill {
+      display:flex;align-items:center;gap:10px;
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:20px;padding:5px 14px;font-size:11.5px;color:var(--text3);
+      backdrop-filter:blur(8px);transition:background .25s;
     }
-    .result-badge.visible { opacity: 1; transform: scale(1); }
+    .stats-pill strong { color:var(--primary);font-weight:600; }
+    .sp-div { width:1px;height:12px;background:var(--border); }
+    .icon-btn {
+      width:36px;height:36px;background:var(--surface);border:1px solid var(--border);
+      border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+      color:var(--text2);transition:all .15s;backdrop-filter:blur(8px);
+    }
+    .icon-btn:hover { background:var(--primary-chip);border-color:var(--primary-chip-b);color:var(--primary);transform:scale(1.06); }
+    .icon-btn svg { width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
 
-    .title { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; transition: color 0.3s; }
-    .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; transition: color 0.3s; }
-    .kbd { display: inline-flex; align-items: center; background: var(--kbd-bg); border: 1px solid var(--kbd-border); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-family: monospace; color: var(--text-secondary); line-height: 1.6; transition: background 0.3s, border-color 0.3s; }
+    /* ══ CARD ════════════════════════════════════════════════════════════════ */
+    .card {
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(18px);
+      transition:background .25s,border-color .25s,box-shadow .25s;
+    }
 
-    .theme-toggle { background: var(--toggle-bg); border: none; cursor: pointer; color: var(--toggle-color); width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s, color 0.2s, transform 0.2s; }
-    .theme-toggle:hover { transform: scale(1.08); }
-    .theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* ══ ÁREA DE BUSCA ══════════════════════════════════════════════════════ */
+    .search-area { padding:26px 30px 20px;border-bottom:1px solid var(--border2); }
+    .search-wrapper { position:relative; }
+    .search-icon {
+      position:absolute;left:14px;top:50%;transform:translateY(-50%);
+      width:17px;height:17px;pointer-events:none;color:var(--text3);transition:color .2s;
+    }
+    .search-icon.pulse { animation:searchPulse .9s ease infinite; }
+    @keyframes searchPulse { 0%,100%{opacity:1;transform:translateY(-50%) scale(1)} 50%{opacity:.5;transform:translateY(-50%) scale(1.2)} }
+    .ghost-wrap { position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:14px; }
+    .ghost-text {
+      padding:14px 90px 14px 44px;font-size:15px;font-family:var(--font);
+      color:var(--text3);white-space:nowrap;line-height:1.5;
+    }
+    .search-box {
+      width:100%;padding:14px 90px 14px 44px;font-size:15px;border-radius:14px;
+      border:1.5px solid var(--border);outline:none;transition:all .2s;
+      background:var(--surface2);color:var(--text);font-family:var(--font);
+    }
+    .search-box::placeholder { color:var(--text3); }
+    .search-box:focus { background:var(--surface);border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow); }
+    .search-actions { position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:4px; }
+    .s-btn {
+      width:26px;height:26px;border:none;border-radius:8px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;transition:all .15s;
+      background:none;color:var(--text3);
+    }
+    .s-btn:hover { background:var(--primary-chip);color:var(--primary); }
+    .s-btn svg { width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
+    .clear-btn { background:var(--surface3) !important; border-radius:50% !important; display:none; }
+    .clear-btn.visible { display:flex !important; }
 
-    /* ── Card ───────────────────────────────────────────────────────────────── */
-    .card { background: var(--card); border-radius: 22px; border: 1px solid var(--card-border); box-shadow: var(--shadow-card); overflow: hidden; animation: fadeDown 0.44s 0.09s ease both; transition: background 0.3s, border-color 0.3s, box-shadow 0.3s; }
+    /* ══ PILLS DE TERMOS ════════════════════════════════════════════════════ */
+    .term-pills { display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:0;overflow:hidden;transition:max-height .2s ease; }
+    .term-pills.open { max-height:80px; }
+    .term-pill {
+      display:inline-flex;align-items:center;gap:4px;
+      background:var(--accent);color:#fff;border-radius:20px;
+      padding:3px 8px 3px 10px;font-size:12px;font-weight:500;
+      animation:pillIn .18s ease;
+    }
+    @keyframes pillIn { from{transform:scale(.8);opacity:0} to{transform:scale(1);opacity:1} }
+    .pill-rm { background:rgba(255,255,255,.22);border:none;cursor:pointer;color:#fff;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .15s; }
+    .pill-rm:hover { background:rgba(255,255,255,.4); }
+    .pill-rm svg { width:8px;height:8px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round; }
 
-    /* ── Hero ───────────────────────────────────────────────────────────────── */
-    .hero { height: 76px; background: linear-gradient(105deg, #1b5e20 0%, #2e7d32 38%, #388e3c 68%, #43a047 100%); position: relative; overflow: hidden; }
-    .hero-pattern { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.15; }
-    .hero-content { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 30px; gap: 13px; }
-    .hero-content .hero-icon { width: 21px; height: 21px; stroke: rgba(255,255,255,0.88); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .hero-text { color: rgba(255,255,255,0.92); }
-    .hero-title { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
-    .hero-sub { font-size: 11.5px; opacity: 0.72; margin-top: 1px; transition: opacity 0.25s ease; }
-    .hero-sub--result { opacity: 0.9; }
-    .hero-sub--result strong { font-weight: 700; font-style: normal; }
+    /* ══ RECENTES ═══════════════════════════════════════════════════════════ */
+    .recents-wrap { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px; }
+    .recents-label { font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);flex-shrink:0; }
+    .recents { display:flex;flex-wrap:wrap;gap:6px;flex:1; }
+    .recents-clear-all { font-size:10.5px;color:var(--text3);cursor:pointer;background:none;border:none;flex-shrink:0;transition:color .15s; }
+    .recents-clear-all:hover { color:var(--primary); }
+    .chip {
+      display:inline-flex;align-items:center;gap:5px;
+      background:var(--primary-chip);border:1px solid var(--primary-chip-b);
+      border-radius:20px;padding:4px 6px 4px 9px;font-size:12px;color:var(--primary);
+      cursor:pointer;transition:all .15s;
+    }
+    .chip:hover { transform:translateY(-1px);box-shadow:0 2px 8px var(--primary-glow); }
+    .chip-text { max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+    .chip-rm { background:none;border:none;cursor:pointer;color:var(--primary-chip-b);padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;width:18px;height:18px;transition:all .15s; }
+    .chip-rm:hover { color:var(--primary);background:var(--primary-glow); }
 
-    /* ── Área de busca ──────────────────────────────────────────────────────── */
-    .search-area { padding: 24px 28px; border-bottom: 1px solid var(--divider); transition: border-color 0.3s; }
-    .search-wrapper { position: relative; }
-    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; pointer-events: none; color: var(--text-muted); transition: color 0.3s; }
-    .search-box { width: 100%; height: 56px; padding: 0 50px; font-size: 16px; border-radius: 14px; border: 1.5px solid var(--input-border); outline: none; background: var(--input-bg); color: var(--text-primary); transition: border-color 0.22s, box-shadow 0.22s, background 0.22s, color 0.22s; }
-    .search-box::placeholder { color: var(--text-muted); }
-    .search-box:focus { background: var(--card); border-color: var(--input-focus-border); box-shadow: 0 0 0 4px var(--input-focus-shadow); }
-    .clear-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: var(--input-border); border: none; cursor: pointer; color: var(--text-muted); width: 26px; height: 26px; border-radius: 50%; display: none; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
-    .clear-btn:hover { background: var(--item-hover-border); color: #fff; }
-    .clear-btn.visible { display: flex; }
+    /* ══ TOOLBAR ════════════════════════════════════════════════════════════ */
+    .toolbar {
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 30px;max-height:0;opacity:0;overflow:hidden;
+      transition:max-height .25s ease,opacity .25s ease,padding .25s ease;
+    }
+    .toolbar.open { max-height:54px;opacity:1;padding:12px 30px; }
+    .tb-left  { display:flex;align-items:center;gap:8px; }
+    .tb-right { display:flex;align-items:center;gap:6px;flex-shrink:0; }
+    .result-count { font-size:13px;color:var(--text2); }
+    .result-count strong { color:var(--primary);font-size:15px;font-weight:700; }
+    .result-time  { font-size:11px;color:var(--text3); }
+    .view-btn {
+      width:30px;height:30px;background:none;border:1px solid var(--border);
+      border-radius:7px;cursor:pointer;color:var(--text3);display:flex;
+      align-items:center;justify-content:center;transition:all .15s;
+    }
+    .view-btn:hover,.view-btn.active { background:var(--primary-chip);border-color:var(--primary-chip-b);color:var(--primary); }
+    .view-btn svg { width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
+    .tool-btn {
+      display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);
+      border-radius:8px;padding:5px 10px;font-size:11.5px;color:var(--text2);cursor:pointer;
+      transition:all .15s;font-family:var(--font);
+    }
+    .tool-btn:hover { background:var(--primary-chip);border-color:var(--primary-chip-b);color:var(--primary); }
+    .tool-btn svg { width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
 
-    /* Sugestão fantasma */
-    .ghost-hint { font-size: 11.5px; color: var(--text-muted); padding: 5px 4px 0; min-height: 20px; opacity: 0.75; }
-    .ghost-hint .ghost-tab { display: inline-block; background: var(--toggle-bg); border-radius: 4px; padding: 0 5px; font-size: 10px; font-weight: 700; margin-right: 4px; }
+    /* ══ ÁREA DE RESULTADOS ════════════════════════════════════════════════ */
+    .results-area { padding:18px 30px 26px; }
+    .loading-bar { display:none;align-items:center;gap:8px;font-size:13px;color:var(--text3);margin-bottom:14px; }
+    .loading-bar.visible { display:flex; }
+    .spinner { width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* Pills de termos ativos */
-    .term-pills-wrap { display: none; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
-    .term-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 600; }
-    .term-sep { font-size: 11px; color: var(--text-muted); }
+    /* Skeleton */
+    .skel-list { display:flex;flex-direction:column;gap:8px; }
+    .skel-item {
+      height:64px;border-radius:12px;border:1.5px solid var(--border2);
+      background:linear-gradient(90deg,var(--surface3) 25%,var(--surface2) 50%,var(--surface3) 75%);
+      background-size:200% 100%;animation:shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-    /* ── Chips recentes ─────────────────────────────────────────────────────── */
-    .recents-wrap { margin-top: 14px; }
-    .recents-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .recents-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); transition: color 0.3s; }
-    .recents { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip { display: inline-flex; align-items: center; gap: 5px; background: var(--chip-bg); border: 1px solid var(--chip-border); border-radius: 20px; padding: 4px 6px 4px 9px; font-size: 12px; color: var(--green-mid); line-height: 1; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-    .chip:hover { background: var(--item-bg); border-color: var(--item-hover-border); }
-    .chip-icon { flex-shrink: 0; opacity: 0.5; display: flex; }
-    .chip-text { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .chip-remove { background: none; border: none; cursor: pointer; color: var(--chip-border); padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 18px; height: 18px; transition: color 0.15s, background 0.15s; flex-shrink: 0; }
-    .chip-remove:hover { color: var(--green-mid); background: rgba(46,125,50,0.12); }
-    .clear-all-btn { background: none; border: none; cursor: pointer; font-size: 10.5px; color: var(--text-muted); padding: 2px 7px; border-radius: 5px; transition: color 0.15s, background 0.15s; }
-    .clear-all-btn:hover { color: var(--green-mid); background: var(--chip-bg); }
-    .confirm-yes { cursor: pointer; font-weight: 700; color: var(--green-mid); text-decoration: underline; background: none; border: none; font-size: 10.5px; }
-    .confirm-no  { cursor: pointer; font-weight: 700; color: var(--text-muted); text-decoration: underline; background: none; border: none; font-size: 10.5px; }
+    /* ══ ITENS — LISTA ══════════════════════════════════════════════════════ */
+    .items-list { display:flex;flex-direction:column;gap:7px; }
+    .items-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:9px; }
 
-    /* ── Resultados ─────────────────────────────────────────────────────────── */
-    .results-area { padding: 0 28px 28px; }
+    .item {
+      padding:12px 14px;border-radius:12px;background:var(--surface2);
+      border:1.5px solid var(--border);display:flex;align-items:center;gap:11px;
+      transition:border-color .15s,box-shadow .2s,transform .2s,background .15s;
+      animation:slideIn .25s ease both;cursor:pointer;position:relative;overflow:hidden;
+      outline:none;
+    }
+    .item::after { content:'';position:absolute;inset:0;border-radius:12px;opacity:0;background:linear-gradient(135deg,var(--primary-glow),transparent);transition:opacity .2s;pointer-events:none; }
+    .item:hover::after,.item:focus::after { opacity:1; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .item:hover,.item:focus { border-color:var(--primary);box-shadow:0 6px 20px var(--primary-glow);transform:translateY(-2px); }
+    .item:active { transform:translateY(0) scale(.99); }
+    .item.copied { border-color:var(--primary) !important;background:var(--primary-chip) !important; }
+    .item-icon {
+      width:38px;height:38px;background:var(--primary-chip);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s;
+    }
+    .item:hover .item-icon { transform:scale(1.08) rotate(-5deg); }
+    .item-icon svg { width:17px;height:17px;stroke:var(--primary);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+    .item-info { flex:1;min-width:0; }
+    .produto { font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .produto mark { background:var(--mark);color:var(--text);border-radius:2px;padding:0 2px;font-weight:700; }
+    .caixa-badge {
+      display:inline-flex;align-items:center;gap:4px;background:var(--primary-chip);
+      color:var(--primary);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:500;margin-top:4px;
+    }
+    .caixa-badge svg { width:11px;height:11px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round; }
+    .copy-hint { position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);opacity:0;transition:opacity .2s;pointer-events:none; }
+    .item:hover .copy-hint { opacity:1; }
 
-    /* Status bar */
-    .status-bar { display: flex; align-items: center; justify-content: space-between; overflow: hidden; max-height: 0; opacity: 0; margin-bottom: 0; transition: max-height 0.22s ease, opacity 0.22s ease, margin-bottom 0.22s ease; }
-    .status-bar.visible { max-height: 44px; opacity: 1; margin-bottom: 14px; margin-top: 18px; }
-    .status-left { display: flex; align-items: center; gap: 10px; }
-    .result-count { font-size: 12.5px; color: var(--text-muted); transition: color 0.3s; }
-    .result-count strong { color: var(--green-light); font-weight: 600; }
-    .cache-badge { display: inline-flex; align-items: center; background: rgba(102,187,106,0.2); color: var(--green-light); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 700; margin-left: 4px; letter-spacing: 0.3px; }
-    .loading { display: none; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-muted); }
-    .loading.visible { display: flex; }
-    .spinner { width: 13px; height: 13px; border: 2px solid var(--input-border); border-top-color: var(--green-light); border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ══ AGRUPADO POR CAIXA ════════════════════════════════════════════════ */
+    .group-hd {
+      display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface3);
+      border-radius:9px;margin-bottom:7px;cursor:pointer;user-select:none;transition:background .15s;
+    }
+    .group-hd:hover { background:var(--primary-chip); }
+    .group-title { font-size:12px;font-weight:600;color:var(--primary);flex:1; }
+    .group-cnt { font-size:11px;color:var(--text3);background:var(--border);border-radius:10px;padding:1px 7px; }
+    .group-chev { color:var(--text3);transition:transform .2s; }
+    .group-chev svg { width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round; }
+    .group-chev.col { transform:rotate(-90deg); }
+    .group-bd { margin-bottom:14px; }
+    .group-bd.col { display:none; }
 
-    /* Status bar direita */
-    .status-right { display: flex; align-items: center; gap: 6px; }
-    .density-btn { background: var(--toggle-bg); border: none; cursor: pointer; color: var(--text-muted); font-size: 10.5px; font-weight: 600; padding: 0 9px; height: 32px; border-radius: 8px; white-space: nowrap; letter-spacing: 0.3px; transition: background 0.15s, color 0.15s; }
-    .density-btn:hover { background: var(--chip-bg); color: var(--green-mid); }
-    .export-btn { display: flex; align-items: center; gap: 5px; background: var(--toggle-bg); border: none; cursor: pointer; color: var(--text-muted); font-size: 11.5px; font-weight: 500; padding: 0 11px; height: 32px; border-radius: 8px; white-space: nowrap; transition: background 0.15s, color 0.15s; }
-    .export-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .export-btn:hover { background: var(--chip-bg); color: var(--green-mid); }
-    .view-toggles { display: flex; gap: 4px; }
-    .view-btn { background: var(--toggle-bg); border: none; cursor: pointer; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
-    .view-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .view-btn:not(.active):hover { background: var(--item-border); }
+    /* ══ ESTADOS ════════════════════════════════════════════════════════════ */
+    .state { text-align:center; }
+    .state-hint  { padding:50px 20px 58px; }
+    .state-empty { padding:50px 20px 58px; }
+    .state-min   { padding:28px 20px 36px; }
+    .state-icon  { width:64px;height:64px;border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center; }
+    .state-icon svg { fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round; }
+    .state-hint  .state-icon { background:rgba(121,134,203,.1); }
+    .state-hint  .state-icon svg { width:30px;height:30px;stroke:#7986cb; }
+    .state-empty .state-icon { background:rgba(255,179,0,.1); }
+    .state-empty .state-icon svg { width:30px;height:30px;stroke:#ffb300; }
+    .state-min   .state-icon { background:var(--surface3); }
+    .state-min   .state-icon svg { width:24px;height:24px;stroke:var(--text3); }
+    .state-title { font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px; }
+    .state-sub   { font-size:12.5px;color:var(--text3);line-height:1.6; }
+    .kbd-hint { background:var(--surface3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:11px;font-family:monospace; }
 
-    @keyframes pulseOutline { 0% { box-shadow:0 0 0 0 rgba(46,125,50,.7); } 65% { box-shadow:0 0 0 5px rgba(46,125,50,0); } 100% { box-shadow:0 0 0 0 rgba(46,125,50,0); } }
-    @keyframes pulseOutlineDark { 0% { box-shadow:0 0 0 0 rgba(102,187,106,.7); } 65% { box-shadow:0 0 0 5px rgba(102,187,106,0); } 100% { box-shadow:0 0 0 0 rgba(102,187,106,0); } }
-    .view-btn.active { background: var(--green-mid); color: #fff; animation: pulseOutline 1.9s ease infinite; }
-    [data-theme="dark"] .view-btn.active { animation: pulseOutlineDark 1.9s ease infinite; }
+    /* ══ ERRO ════════════════════════════════════════════════════════════════ */
+    .error-box { margin-top:18px;padding:14px 16px;background:var(--err-bg);border:1.5px solid var(--err-b);border-radius:12px;color:var(--err-t);font-size:13px;line-height:1.4;display:flex;align-items:flex-start;gap:10px; }
+    .error-box svg { width:18px;height:18px;stroke:var(--err-t);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0; }
 
-    /* ── Grid/list ──────────────────────────────────────────────────────────── */
-    .items-list { display: grid; gap: 8px; }
-    .items-list.view-grid { grid-template-columns: 1fr; }
-    @media (min-width: 520px) { .items-list.view-grid { grid-template-columns: 1fr 1fr; } }
-    .items-list.view-list { grid-template-columns: 1fr; }
+    /* ══ TOAST ═══════════════════════════════════════════════════════════════ */
+    .toast-wrap { position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column-reverse;align-items:center;gap:7px;pointer-events:none; }
+    .toast {
+      display:inline-flex;align-items:center;gap:8px;background:#1a1a2e;color:#fff;
+      padding:9px 18px;border-radius:24px;font-size:13px;font-weight:500;
+      box-shadow:0 4px 20px rgba(0,0,0,.28);animation:tIn .24s ease;white-space:nowrap;
+    }
+    [data-theme="dark"] .toast { background:#e6edf3;color:#1a1a2e; }
+    .toast.err { background:#c62828 !important; color:#fff !important; }
+    .toast svg { width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round; }
+    @keyframes tIn  { from{opacity:0;transform:translateY(12px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes tOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(8px) scale(.92)} }
+    .toast.gone { animation:tOut .2s ease forwards; }
 
-    /* ── Item ───────────────────────────────────────────────────────────────── */
-    .item { padding: 13px 16px; border-radius: 13px; background: var(--item-bg); border: 1.5px solid var(--item-border); display: flex; align-items: center; gap: 12px; min-width: 0; cursor: pointer; transition: border-color 0.17s, box-shadow 0.17s, transform 0.17s, background 0.3s; animation: slideIn 0.26s ease both; }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(-14px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
-    .item:hover { border-color: var(--item-hover-border); box-shadow: 0 6px 22px var(--item-hover-shadow); transform: translateY(-4px); }
-    .item--focused { border-color: var(--input-focus-border) !important; box-shadow: 0 0 0 3px var(--input-focus-shadow), 0 6px 20px var(--item-hover-shadow) !important; transform: translateY(-2px); }
-    [data-density="compact"] .item  { padding: 8px 12px; }
-    [data-density="spacious"] .item { padding: 20px 22px; }
-    .item-icon { width: 38px; height: 38px; background: var(--badge-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .item-icon svg { width: 18px; height: 18px; stroke: var(--green-mid); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .item-info { flex: 1; min-width: 0; }
-    .produto { font-size: 14px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
-    .produto mark { background: var(--mark-bg); color: var(--mark-color); border-radius: 2px; padding: 0 1px; font-weight: 700; }
-    .caixa-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--badge-bg); color: var(--badge-color); border-radius: 6px; padding: 3px 8px; font-size: 11.5px; font-weight: 500; margin-top: 5px; transition: background 0.3s, color 0.3s; }
-    .caixa-badge svg { width: 11px; height: 11px; stroke: var(--badge-color); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* ══ SCROLL TOP ══════════════════════════════════════════════════════════ */
+    .scroll-top {
+      position:fixed;bottom:22px;right:22px;width:44px;height:44px;
+      background:var(--primary);color:#fff;border:none;border-radius:50%;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 16px rgba(46,125,50,.42);opacity:0;pointer-events:none;
+      transform:translateY(16px);transition:opacity .25s,transform .25s;z-index:100;
+    }
+    .scroll-top.on { opacity:1;pointer-events:auto;transform:translateY(0); }
+    .scroll-top:hover { transform:translateY(-3px) !important; }
+    .scroll-top svg { width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round; }
 
-    /* ── Group view ─────────────────────────────────────────────────────────── */
-    .view-group { display: flex; flex-direction: column; gap: 8px; }
-    .group-section { border: 1.5px solid var(--item-border); border-radius: 14px; overflow: hidden; animation: slideIn 0.26s ease both; transition: border-color 0.3s; }
-    .group-section:hover { border-color: var(--item-hover-border); }
-    .group-header { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 16px; background: var(--item-bg); border: none; cursor: pointer; text-align: left; transition: background 0.15s; }
-    .group-header:hover { background: var(--toggle-bg); }
-    .group-chevron { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 2.2; stroke-linecap: round; flex-shrink: 0; transition: transform 0.22s ease; }
-    .group-section.collapsed .group-chevron { transform: rotate(-90deg); }
-    .group-icon { width: 14px; height: 14px; stroke: var(--badge-color); fill: none; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
-    .group-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .group-count { font-size: 11px; font-weight: 700; background: var(--badge-bg); color: var(--badge-color); border-radius: 10px; padding: 1px 7px; }
-    .group-body { padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 5px; background: var(--card); }
-    .group-section.collapsed .group-body { display: none; }
-    .group-body .item { margin: 0; }
+    /* ══ OVERLAY ATALHOS ════════════════════════════════════════════════════ */
+    .ov-bg { position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s; }
+    .ov-bg.on { opacity:1;pointer-events:auto; }
+    .ov-card { background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:26px 30px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2); }
+    .ov-title { font-size:15px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between; }
+    .ov-close { background:none;border:none;cursor:pointer;color:var(--text3);width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .15s; }
+    .ov-close:hover { background:var(--surface3); }
+    .ov-close svg { width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round; }
+    .sh-row { display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--text2); }
+    .sh-row:last-child { border-bottom:none; }
+    .sh-keys { display:flex;align-items:center;gap:4px; }
+    .kbd { display:inline-flex;align-items:center;background:var(--surface3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:2px 7px;font-size:11.5px;font-family:monospace;color:var(--text2);line-height:1.6; }
 
-    /* ── Skeleton loading ───────────────────────────────────────────────────── */
-    .skeleton-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 18px; }
-    @media (max-width: 519px) { .skeleton-grid { grid-template-columns: 1fr; } }
-    .skeleton-card { padding: 13px 16px; border-radius: 13px; background: var(--item-bg); border: 1.5px solid var(--item-border); display: flex; align-items: center; gap: 12px; overflow: hidden; }
-    .sk-icon { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(90deg, var(--item-border) 25%, var(--divider) 50%, var(--item-border) 75%); background-size: 300% 100%; animation: shimmer 1.5s infinite; }
-    .sk-lines { flex: 1; }
-    .sk-line { border-radius: 5px; background: linear-gradient(90deg, var(--item-border) 25%, var(--divider) 50%, var(--item-border) 75%); background-size: 300% 100%; animation: shimmer 1.5s infinite; }
-    .sk-line--title { height: 13px; width: 72%; margin-bottom: 9px; }
-    .sk-line--badge { height: 10px; width: 42%; }
-    @keyframes shimmer { 0% { background-position: 300% 0; } 100% { background-position: -300% 0; } }
+    /* ══ CONFETTI ════════════════════════════════════════════════════════════ */
+    #confetti { position:fixed;inset:0;pointer-events:none;z-index:9998; }
 
-    /* ── Estados ────────────────────────────────────────────────────────────── */
-    .state { text-align: center; }
-    .state-hint  { padding: 50px 20px 58px; animation: fadeIn 0.3s ease both; }
-    .state-empty { padding: 50px 20px 58px; animation: fadeIn 0.3s ease both; }
-    .state-min   { padding: 28px 20px 36px; animation: fadeIn 0.3s ease both; }
-    @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-
-    /* Cubo 3D */
-    .cube-scene { width: 54px; height: 54px; perspective: 210px; margin: 0 auto 22px; }
-    .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: rotateCube 6s linear infinite; }
-    @keyframes rotateCube { 0% { transform: rotateX(10deg) rotateY(0deg); } 100% { transform: rotateX(370deg) rotateY(360deg); } }
-    .cube-face { position: absolute; width: 54px; height: 54px; border: 2px solid var(--cube-border); background: var(--cube-face); border-radius: 4px; }
-    .cube-face--front  { transform: translateZ(27px); }
-    .cube-face--back   { transform: rotateY(180deg)  translateZ(27px); }
-    .cube-face--left   { transform: rotateY(-90deg)  translateZ(27px); }
-    .cube-face--right  { transform: rotateY(90deg)   translateZ(27px); }
-    .cube-face--top    { transform: rotateX(90deg)   translateZ(27px); }
-    .cube-face--bottom { transform: rotateX(-90deg)  translateZ(27px); }
-
-    .state-icon { width: 62px; height: 62px; border-radius: 18px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
-    .state-icon svg { fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    .state-empty .state-icon { background: var(--state-empty-bg); }
-    .state-empty .state-icon svg { width: 30px; height: 30px; stroke: var(--state-empty-stroke); }
-    .state-min .state-icon  { background: var(--state-min-bg); }
-    .state-min .state-icon svg  { width: 26px; height: 26px; stroke: var(--state-min-stroke); }
-    .state-title { font-size: 15px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; transition: color 0.3s; }
-    .state-sub   { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; opacity: 0.75; }
-
-    /* ── Erro ───────────────────────────────────────────────────────────────── */
-    .error { margin-top: 20px; padding: 14px 16px; background: rgba(198,40,40,0.07); border: 1.5px solid rgba(198,40,40,0.25); border-radius: 12px; color: #ef5350; font-size: 13.5px; line-height: 1.4; display: flex; align-items: flex-start; gap: 10px; }
-    .error-icon { flex-shrink: 0; margin-top: 1px; }
-    .error-icon svg { width: 18px; height: 18px; stroke: #ef5350; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* ── Card footer — estatísticas ─────────────────────────────────────────── */
-    .card-footer { padding: 11px 28px; border-top: 1px solid var(--divider); display: flex; align-items: center; justify-content: center; transition: border-color 0.3s; }
-    .stats-text { font-size: 11px; color: var(--text-muted); opacity: 0.8; transition: color 0.3s; }
-
-    /* ── Toast ──────────────────────────────────────────────────────────────── */
-    .toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; background: #2e7d32; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 600; box-shadow: 0 4px 22px rgba(46,125,50,0.38); display: flex; align-items: center; gap: 8px; opacity: 0; transform: translateY(12px) scale(0.94); transition: opacity 0.22s ease, transform 0.22s ease; pointer-events: none; }
-    .toast svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .toast--visible { opacity: 1; transform: translateY(0) scale(1); }
-
-    /* ── Scroll to top ──────────────────────────────────────────────────────── */
-    .scroll-top-btn { position: fixed; bottom: 28px; right: 82px; z-index: 9998; width: 42px; height: 42px; border-radius: 50%; background: var(--green-mid); border: none; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(46,125,50,0.35); opacity: 0; transform: translateY(10px) scale(0.9); transition: opacity 0.22s, transform 0.22s, background 0.15s; pointer-events: none; }
-    .scroll-top-btn.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
-    .scroll-top-btn:hover { background: var(--green-base); }
-    .scroll-top-btn svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* ── Modal de atalhos ───────────────────────────────────────────────────── */
-    .modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.52); opacity: 0; pointer-events: none; transition: opacity 0.22s ease; }
-    .modal--open { opacity: 1; pointer-events: all; }
-    .modal-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; box-shadow: 0 8px 44px rgba(0,0,0,0.28); width: 100%; max-width: 420px; margin: 16px; transform: translateY(16px) scale(0.97); transition: transform 0.22s ease; overflow: hidden; }
-    .modal--open .modal-card { transform: translateY(0) scale(1); }
-    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--divider); }
-    .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-    .modal-close { background: var(--toggle-bg); border: none; cursor: pointer; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
-    .modal-close:hover { background: var(--item-border); color: var(--text-primary); }
-    .modal-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
-    .modal-body { padding: 16px 24px 24px; }
-    .shortcut-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--divider); font-size: 13px; color: var(--text-secondary); }
-    .shortcut-row:last-child { border-bottom: none; }
-    .shortcut-keys { display: flex; gap: 4px; align-items: center; }
-    .kbd-lg { display: inline-flex; align-items: center; background: var(--kbd-bg); border: 1px solid var(--kbd-border); border-bottom-width: 2px; border-radius: 5px; padding: 2px 8px; font-size: 12px; font-family: monospace; color: var(--text-secondary); }
-
-    /* ── Primeiro foco ──────────────────────────────────────────────────────── */
-    @keyframes searchFirstFocus { 0% { box-shadow:0 0 0 0 rgba(67,160,71,.55); } 40% { box-shadow:0 0 0 9px rgba(67,160,71,.18); } 100% { box-shadow:0 0 0 4px var(--input-focus-shadow); } }
-    .search-box--first-focus { animation: searchFirstFocus 0.75s ease forwards; }
-
-    /* ── View transition ────────────────────────────────────────────────────── */
-    .items-list--leaving { opacity: 0 !important; transform: scale(0.97) !important; transition: opacity 0.17s ease, transform 0.17s ease !important; }
-    .items-list--entering { animation: itemsEnter 0.22s ease both; }
-    @keyframes itemsEnter { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-
-    /* ── Responsive ─────────────────────────────────────────────────────────── */
-    @media (max-width: 460px) { .hero-sub { display: none; } .search-area { padding: 18px 20px; } .results-area { padding: 0 20px 20px; } .status-right { gap: 3px; } .density-btn { display: none; } }
+    /* ══ IMPRESSÃO ══════════════════════════════════════════════════════════ */
+    @media print {
+      .bg-canvas,.header-actions,.tb-right,.scroll-top,.toast-wrap,.ov-bg,#confetti { display:none !important; }
+      body { background:#fff !important;padding:0 !important; }
+      .card { box-shadow:none !important;border:1px solid #ddd !important; }
+      .item { break-inside:avoid; }
+    }
   </style>
 </head>
-
 <body>
 
-  <!-- Hexágonos flutuantes -->
-  <div class="bg-particles" aria-hidden="true">
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--hex-stroke)" stroke-width="5"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--hex-stroke)" stroke-width="4"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="var(--hex-stroke)" stroke="none" opacity="0.35"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--green-base)" stroke-width="5"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--hex-stroke)" stroke-width="3"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="var(--green-base)" stroke="none" opacity="0.28"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--green-light)" stroke-width="5"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--hex-stroke)" stroke-width="4"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="var(--hex-stroke)" stroke="none" opacity="0.22"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--green-base)" stroke-width="4"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--green-light)" stroke-width="3"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--hex-stroke)" stroke-width="5"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="var(--green-light)" stroke="none" opacity="0.20"/></svg></div>
-    <div class="hex"><svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"><polygon points="50,2 95,27 95,88 50,113 5,88 5,27" fill="none" stroke="var(--green-base)" stroke-width="6"/></svg></div>
+  <!-- Orbs de fundo -->
+  <div class="bg-canvas">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
 
+  <!-- Confetti -->
+  <canvas id="confetti"></canvas>
+
+  <!-- Toasts -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- Scroll to top -->
+  <button class="scroll-top" id="scrollTop">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- Overlay atalhos -->
+  <div class="ov-bg" id="ovBg">
+    <div class="ov-card">
+      <div class="ov-title">
+        Atalhos de teclado
+        <button class="ov-close" id="ovClose"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="sh-row"><span>Focar na busca</span><div class="sh-keys"><span class="kbd">/</span></div></div>
+      <div class="sh-row"><span>Fechar / Desfocar</span><div class="sh-keys"><span class="kbd">Esc</span></div></div>
+      <div class="sh-row"><span>Navegar resultados</span><div class="sh-keys"><span class="kbd">↑</span><span class="kbd">↓</span></div></div>
+      <div class="sh-row"><span>Copiar selecionado</span><div class="sh-keys"><span class="kbd">Enter</span></div></div>
+      <div class="sh-row"><span>Exportar CSV</span><div class="sh-keys"><span class="kbd">Ctrl</span>+<span class="kbd">E</span></div></div>
+      <div class="sh-row"><span>Alternar tema</span><div class="sh-keys"><span class="kbd">Ctrl</span>+<span class="kbd">D</span></div></div>
+      <div class="sh-row"><span>Este painel</span><div class="sh-keys"><span class="kbd">?</span></div></div>
+    </div>
+  </div>
+
+  <!-- Container principal -->
   <div class="container">
-    <!-- Topbar -->
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="header-icon-wrap">
-          <div class="header-icon">
-            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-          </div>
-          <div class="result-badge" id="resultBadge"></div>
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <div class="header">
+        <div class="header-icon" id="hIcon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
         </div>
         <div>
+          <div class="greeting" id="greeting"></div>
           <div class="title">Busca de Inventário</div>
-          <div class="subtitle">
-            <span class="kbd">+</span> combinar &nbsp;·&nbsp;
-            <span class="kbd">/</span> focar &nbsp;·&nbsp;
-            <span class="kbd">?</span> atalhos
-          </div>
         </div>
       </div>
-      <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema"></button>
+
+      <div class="header-actions">
+        <!-- Stats -->
+        <div class="stats-pill" id="statsPill" style="display:none">
+          <span><strong id="stS">0</strong> buscas</span>
+          <div class="sp-div"></div>
+          <span><strong id="stH">0</strong> achados</span>
+        </div>
+        <!-- Densidade -->
+        <button class="icon-btn" id="densBtn" title="Densidade (compacto/normal)">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <!-- Alto contraste -->
+        <button class="icon-btn" id="hcBtn" title="Alto contraste">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20V2z" fill="currentColor"/></svg>
+        </button>
+        <!-- Tema -->
+        <button class="icon-btn" id="themeBtn" title="Alternar tema (Ctrl+D)">
+          <svg id="themeIco" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <!-- Atalhos -->
+        <button class="icon-btn" id="shortBtn" title="Atalhos (?)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- Card -->
     <div class="card">
 
-      <!-- Hero -->
-      <div class="hero">
-        <svg class="hero-pattern" viewBox="0 0 1120 76" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="herogeo" x="0" y="0" width="60" height="69" patternUnits="userSpaceOnUse">
-              <polygon points="30,2 56,16 56,53 30,67 4,53 4,16" fill="none" stroke="#fff" stroke-width="1.3"/>
-              <line x1="30" y1="2" x2="30" y2="67" stroke="#fff" stroke-width="0.5"/>
-              <line x1="4" y1="34" x2="56" y2="34" stroke="#fff" stroke-width="0.5"/>
-              <polygon points="30,10 50,34 30,58 10,34" fill="none" stroke="#fff" stroke-width="0.7"/>
-            </pattern>
-          </defs>
-          <rect width="1120" height="76" fill="url(#herogeo)"/>
-        </svg>
-        <div class="hero-content">
-          <svg class="hero-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <div class="hero-text">
-            <div class="hero-title">Busca de Inventário</div>
-            <div class="hero-sub" id="heroSub">Localize produtos por nome, código ou combinação de termos</div>
+      <!-- Busca -->
+      <div class="search-area">
+        <div class="search-wrapper">
+          <svg class="search-icon" id="sIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <div class="ghost-wrap"><div class="ghost-text" id="ghost"></div></div>
+          <input id="search" class="search-box" type="text" placeholder="Ex: mirra + roll on" autocomplete="off" spellcheck="false" autofocus>
+          <div class="search-actions">
+            <button class="s-btn clear-btn" id="clearBtn" title="Limpar">
+              <svg viewBox="0 0 24 24" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <button class="s-btn" id="shareBtn" title="Compartilhar link">
+              <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Termos ativos -->
+        <div class="term-pills" id="termPills"></div>
+
+        <!-- Recentes -->
+        <div id="recWrap" style="display:none">
+          <div class="recents-wrap">
+            <span class="recents-label">Recentes</span>
+            <div class="recents" id="recents"></div>
+            <button class="recents-clear-all" id="recClean">Limpar tudo</button>
           </div>
         </div>
       </div>
 
-      <!-- Busca -->
-      <div class="search-area">
-        <div class="search-wrapper">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input id="search" class="search-box" type="text" placeholder="Ex: mirra + roll on" autocomplete="off" spellcheck="false" autofocus>
-          <button class="clear-btn" id="clearBtn" title="Limpar" aria-label="Limpar busca">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+      <!-- Toolbar -->
+      <div class="toolbar" id="toolbar">
+        <div class="tb-left">
+          <div class="result-count" id="rCount"></div>
+          <div class="result-time"  id="rTime"></div>
         </div>
-        <!-- Sugestão fantasma -->
-        <div class="ghost-hint" id="ghostHint" aria-live="polite"></div>
-        <!-- Pills de termos -->
-        <div class="term-pills-wrap" id="termPills"></div>
-        <!-- Recentes -->
-        <div id="recentsWrap" style="display:none">
-          <div class="recents-wrap">
-            <div class="recents-header">
-              <div class="recents-label">Buscas recentes</div>
-              <button class="clear-all-btn" id="clearAllBtn" type="button">Limpar tudo</button>
-            </div>
-            <div class="recents" id="recents"></div>
-          </div>
+        <div class="tb-right">
+          <button class="view-btn active" id="vList" title="Lista">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button class="view-btn" id="vGrid" title="Grade">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="view-btn" id="vGroup" title="Agrupar por caixa">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>
+          </button>
+          <button class="tool-btn" id="exportBtn">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
+          <button class="tool-btn" id="printBtn">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir
+          </button>
         </div>
       </div>
 
       <!-- Resultados -->
       <div class="results-area">
-        <div class="status-bar" id="statusBar">
-          <div class="status-left">
-            <div class="result-count" id="resultCount"></div>
-            <div class="loading" id="loading"><div class="spinner"></div>Buscando…</div>
-          </div>
-          <div class="status-right">
-            <button class="density-btn" id="densityBtn" title="Densidade: Normal"></button>
-            <button class="export-btn" id="exportBtn" title="Exportar resultados">
-              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar
-            </button>
-            <div class="view-toggles">
-              <button class="view-btn" id="btnGrid" title="Grade" aria-label="Grade">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              </button>
-              <button class="view-btn" id="btnList" title="Lista" aria-label="Lista">
-                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-              </button>
-              <button class="view-btn" id="btnGroup" title="Por caixa" aria-label="Agrupar">
-                <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-              </button>
-            </div>
-          </div>
+        <div class="loading-bar" id="loading"><div class="spinner"></div> Buscando…</div>
+        <div class="skel-list" id="skel" style="display:none">
+          <div class="skel-item"></div><div class="skel-item"></div><div class="skel-item"></div>
         </div>
         <div id="results"></div>
-      </div>
-
-      <!-- Footer estatísticas -->
-      <div class="card-footer">
-        <div class="stats-text" id="statsText">0 buscas nesta sessão</div>
       </div>
 
     </div><!-- /card -->
   </div><!-- /container -->
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite">
-    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-    <span id="toastMsg">Copiado!</span>
-  </div>
-
-  <!-- Scroll to top -->
-  <button class="scroll-top-btn" id="scrollTopBtn" title="Voltar ao topo" aria-label="Voltar ao topo">
-    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-  </button>
-
-  <!-- Modal de atalhos -->
-  <div class="modal" id="shortcutsModal" role="dialog" aria-modal="true" aria-label="Atalhos de teclado">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">Atalhos de teclado</div>
-        <button class="modal-close" id="modalClose" aria-label="Fechar">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="shortcut-row"><span>Focar busca</span><div class="shortcut-keys"><span class="kbd-lg">/</span></div></div>
-        <div class="shortcut-row"><span>Limpar / Fechar</span><div class="shortcut-keys"><span class="kbd-lg">Esc</span></div></div>
-        <div class="shortcut-row"><span>Navegar resultados</span><div class="shortcut-keys"><span class="kbd-lg">↑</span><span class="kbd-lg">↓</span></div></div>
-        <div class="shortcut-row"><span>Copiar item focado</span><div class="shortcut-keys"><span class="kbd-lg">Enter</span></div></div>
-        <div class="shortcut-row"><span>Aceitar sugestão</span><div class="shortcut-keys"><span class="kbd-lg">Tab</span></div></div>
-        <div class="shortcut-row"><span>Ver atalhos</span><div class="shortcut-keys"><span class="kbd-lg">?</span></div></div>
-        <div class="shortcut-row"><span>Alto contraste</span><div class="shortcut-keys"><span class="kbd-lg">Alt</span><span class="kbd-lg">C</span></div></div>
-      </div>
-    </div>
-  </div>
-
   <script>
-    /* ══════════════════════════════════════════════════════════════════════════
-       TEMA
-    ══════════════════════════════════════════════════════════════════════════ */
-    var currentTheme = localStorage.getItem("inv_theme") || "light";
-    applyTheme(currentTheme);
-    document.getElementById("themeToggle").addEventListener("click", function () {
-      currentTheme = currentTheme === "light" ? "dark" : "light";
-      localStorage.setItem("inv_theme", currentTheme);
-      applyTheme(currentTheme);
-    });
-    function applyTheme(t) {
-      document.documentElement.setAttribute("data-theme", t);
-      var btn = document.getElementById("themeToggle");
-      if (t === "dark") {
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-        btn.title = "Modo claro";
-      } else {
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-        btn.title = "Modo escuro";
-      }
+  /* ════════════════════════════════════════════════════════════════════════
+     CONSTANTES & ESTADO
+  ════════════════════════════════════════════════════════════════════════ */
+  var REC_KEY   = "inv_rec_v3";
+  var THEME_KEY = "inv_theme";
+  var VIEW_KEY  = "inv_view";
+  var DENS_KEY  = "inv_dens";
+  var HC_KEY    = "inv_hc";
+  var MAX_REC   = 8;
+
+  var debTimer   = null;
+  var curData    = [];
+  var curTermo   = "";
+  var t0         = 0;
+  var navIdx     = -1;
+  var viewMode   = "list";
+  var sesS = 0, sesH = 0;
+  var confBusy   = false;
+
+  /* ── DOM ─────────────────────────────────────────────────────────────── */
+  var inp      = document.getElementById("search");
+  var clrBtn   = document.getElementById("clearBtn");
+  var shareBtn = document.getElementById("shareBtn");
+  var resEl    = document.getElementById("results");
+  var loadEl   = document.getElementById("loading");
+  var skelEl   = document.getElementById("skel");
+  var rCount   = document.getElementById("rCount");
+  var rTime    = document.getElementById("rTime");
+  var toolbar  = document.getElementById("toolbar");
+  var recWrap  = document.getElementById("recWrap");
+  var recEl    = document.getElementById("recents");
+  var recClean = document.getElementById("recClean");
+  var tPills   = document.getElementById("termPills");
+  var ghost    = document.getElementById("ghost");
+  var hIcon    = document.getElementById("hIcon");
+  var greeting = document.getElementById("greeting");
+  var statsPill= document.getElementById("statsPill");
+  var stS      = document.getElementById("stS");
+  var stH      = document.getElementById("stH");
+  var themeBtn = document.getElementById("themeBtn");
+  var themeIco = document.getElementById("themeIco");
+  var densBtn  = document.getElementById("densBtn");
+  var hcBtn    = document.getElementById("hcBtn");
+  var shortBtn = document.getElementById("shortBtn");
+  var ovBg     = document.getElementById("ovBg");
+  var ovClose  = document.getElementById("ovClose");
+  var scrollTop= document.getElementById("scrollTop");
+  var exportBtn= document.getElementById("exportBtn");
+  var printBtn = document.getElementById("printBtn");
+  var toastWrap= document.getElementById("toastWrap");
+  var vList    = document.getElementById("vList");
+  var vGrid    = document.getElementById("vGrid");
+  var vGroup   = document.getElementById("vGroup");
+  var sIcon    = document.getElementById("sIcon");
+
+  /* ════════════════════════════════════════════════════════════════════════
+     1. TEMA (dark/light)
+  ════════════════════════════════════════════════════════════════════════ */
+  function initTheme() { setTheme(localStorage.getItem(THEME_KEY) || "light", true); }
+
+  function setTheme(t, instant) {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem(THEME_KEY, t);
+    themeIco.innerHTML = t === "dark"
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+      : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    if (!instant) { spinIcon(); toast(t==="dark"?"Modo escuro ativado":"Modo claro ativado","ok"); }
+  }
+
+  themeBtn.addEventListener("click", function() {
+    setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     2. DENSIDADE
+  ════════════════════════════════════════════════════════════════════════ */
+  function initDens() { document.documentElement.setAttribute("data-density", localStorage.getItem(DENS_KEY)||"comfortable"); }
+  densBtn.addEventListener("click", function() {
+    var c = document.documentElement.getAttribute("data-density");
+    var n = c==="comfortable"?"compact":"comfortable";
+    document.documentElement.setAttribute("data-density", n);
+    localStorage.setItem(DENS_KEY, n);
+    toast(n==="compact"?"Modo compacto":"Modo normal","ok");
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     3. ALTO CONTRASTE
+  ════════════════════════════════════════════════════════════════════════ */
+  function initHC() { document.documentElement.setAttribute("data-hc", localStorage.getItem(HC_KEY)||"false"); }
+  hcBtn.addEventListener("click", function() {
+    var n = document.documentElement.getAttribute("data-hc")==="true"?"false":"true";
+    document.documentElement.setAttribute("data-hc", n);
+    localStorage.setItem(HC_KEY, n);
+    toast(n==="true"?"Alto contraste ativado":"Alto contraste desativado","ok");
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     4. MODO DE VISUALIZAÇÃO
+  ════════════════════════════════════════════════════════════════════════ */
+  function initView() { setView(localStorage.getItem(VIEW_KEY)||"list"); }
+  function setView(m) {
+    viewMode = m; localStorage.setItem(VIEW_KEY, m);
+    vList.classList.toggle("active", m==="list");
+    vGrid.classList.toggle("active", m==="grid");
+    vGroup.classList.toggle("active", m==="group");
+    if (curData.length) renderData(curData, curTermo);
+  }
+  vList.addEventListener("click",  function(){ setView("list"); });
+  vGrid.addEventListener("click",  function(){ setView("grid"); });
+  vGroup.addEventListener("click", function(){ setView("group"); });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     5. SAUDAÇÃO POR HORA DO DIA
+  ════════════════════════════════════════════════════════════════════════ */
+  function initGreeting() {
+    var h = new Date().getHours();
+    greeting.textContent = (h<12?"Bom dia":h<18?"Boa tarde":"Boa noite") + " 👋";
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     6. OVERLAY DE ATALHOS
+  ════════════════════════════════════════════════════════════════════════ */
+  shortBtn.addEventListener("click", function(){ ovBg.classList.add("on"); });
+  ovClose.addEventListener("click",  function(){ ovBg.classList.remove("on"); });
+  ovBg.addEventListener("click", function(e){ if(e.target===ovBg) ovBg.classList.remove("on"); });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     7. ATALHOS DE TECLADO GLOBAIS
+  ════════════════════════════════════════════════════════════════════════ */
+  document.addEventListener("keydown", function(e) {
+    if (e.key==="Escape") {
+      if (ovBg.classList.contains("on")) { ovBg.classList.remove("on"); return; }
+      if (document.activeElement===inp) inp.blur();
+      return;
     }
+    if (e.key==="?" && document.activeElement!==inp) { ovBg.classList.add("on"); return; }
+    if (e.key==="/" && document.activeElement!==inp) { e.preventDefault(); inp.focus(); inp.select(); return; }
+    if (e.key==="d" && e.ctrlKey) { e.preventDefault(); themeBtn.click(); return; }
+    if (e.key==="e" && e.ctrlKey) { e.preventDefault(); if(curData.length) exportCSV(); return; }
+    if (e.key==="ArrowDown" && document.activeElement===inp) { e.preventDefault(); moveNav(1); return; }
+    if (e.key==="ArrowUp" && document.activeElement!==inp) {
+      e.preventDefault();
+      if (navIdx<=0) { navIdx=-1; inp.focus(); return; }
+      moveNav(-1); return;
+    }
+    if (e.key==="Enter" && document.activeElement!==inp) {
+      var items = resEl.querySelectorAll(".item");
+      if (navIdx>=0 && items[navIdx]) items[navIdx].click();
+    }
+  });
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       VISTA
-    ══════════════════════════════════════════════════════════════════════════ */
-    var currentView = localStorage.getItem("inv_view") || "grid";
-    applyView(currentView, true);
-    document.getElementById("btnGrid").addEventListener("click",  function () { applyView("grid"); });
-    document.getElementById("btnList").addEventListener("click",  function () { applyView("list"); });
-    document.getElementById("btnGroup").addEventListener("click", function () { applyView("group"); });
+  function moveNav(d) {
+    var items = resEl.querySelectorAll(".item");
+    if (!items.length) return;
+    items.forEach(function(it){ it.classList.remove("focused"); it.setAttribute("tabindex","-1"); });
+    navIdx = Math.min(Math.max(navIdx+d, 0), items.length-1);
+    items[navIdx].classList.add("focused");
+    items[navIdx].focus();
+  }
 
-    function applyView(v, instant) {
-      currentView = v;
-      localStorage.setItem("inv_view", v);
-      ["btnGrid","btnList","btnGroup"].forEach(function (id) {
-        var b = document.getElementById(id);
-        if (b) b.classList.remove("active");
+  /* ════════════════════════════════════════════════════════════════════════
+     8. SCROLL TO TOP
+  ════════════════════════════════════════════════════════════════════════ */
+  window.addEventListener("scroll", function(){ scrollTop.classList.toggle("on", window.scrollY>200); });
+  scrollTop.addEventListener("click", function(){ window.scrollTo({top:0,behavior:"smooth"}); });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     9. SISTEMA DE TOAST
+  ════════════════════════════════════════════════════════════════════════ */
+  function toast(msg, type) {
+    var el = document.createElement("div");
+    el.className = "toast" + (type==="err"?" err":"");
+    var icon = type==="ok"
+      ? '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+      : type==="copy"
+      ? '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    el.innerHTML = icon;
+    el.appendChild(document.createTextNode(msg));
+    toastWrap.appendChild(el);
+    setTimeout(function(){
+      el.classList.add("gone");
+      setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 220);
+    }, 2600);
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     10. BUSCAS RECENTES
+  ════════════════════════════════════════════════════════════════════════ */
+  function getRec() { try { return JSON.parse(localStorage.getItem(REC_KEY))||[]; } catch(e){ return []; } }
+
+  function saveRec(t) {
+    var v = t.trim(); if (!v||v.length<2) return;
+    var r = getRec().filter(function(x){ return x!==v; });
+    r.unshift(v); localStorage.setItem(REC_KEY, JSON.stringify(r.slice(0,MAX_REC)));
+    renderRec(); updateGhost();
+  }
+
+  function rmRec(t) {
+    localStorage.setItem(REC_KEY, JSON.stringify(getRec().filter(function(x){ return x!==t; })));
+    renderRec(); updateGhost();
+  }
+
+  recClean.addEventListener("click", function(){ localStorage.removeItem(REC_KEY); renderRec(); updateGhost(); });
+
+  function renderRec() {
+    var r = getRec(); recEl.innerHTML = "";
+    recWrap.style.display = r.length ? "block" : "none";
+    if (!r.length) return;
+    r.forEach(function(term) {
+      var chip = document.createElement("button");
+      chip.className = "chip"; chip.type = "button";
+      var icon = document.createElement("span");
+      icon.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      var txt = document.createElement("span"); txt.className = "chip-text"; txt.textContent = term;
+      var rm  = document.createElement("button"); rm.className = "chip-rm"; rm.type = "button";
+      rm.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      rm.addEventListener("click", function(e){ e.stopPropagation(); rmRec(term); });
+      chip.addEventListener("click", function(){ inp.value=term; clrBtn.classList.add("visible"); buscar(term); });
+      chip.appendChild(icon); chip.appendChild(txt); chip.appendChild(rm);
+      recEl.appendChild(chip);
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     11. GHOST SUGGESTION (autocomplete fantasma)
+  ════════════════════════════════════════════════════════════════════════ */
+  function updateGhost() {
+    var v = inp.value;
+    if (!v) { ghost.textContent = ""; return; }
+    var m = getRec().find(function(x){ return x.toLowerCase().startsWith(v.toLowerCase()) && x!==v; });
+    ghost.textContent = m || "";
+  }
+
+  inp.addEventListener("keydown", function(e){
+    if (e.key==="Tab" && ghost.textContent) {
+      e.preventDefault(); inp.value = ghost.textContent;
+      clrBtn.classList.add("visible"); onInput();
+    }
+  });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     12. PILLS DE TERMOS ATIVOS
+  ════════════════════════════════════════════════════════════════════════ */
+  function updatePills(termo) {
+    tPills.innerHTML = "";
+    var parts = termo.split("+").map(function(p){ return p.trim(); }).filter(Boolean);
+    if (parts.length < 2) { tPills.classList.remove("open"); return; }
+    tPills.classList.add("open");
+    parts.forEach(function(p, idx) {
+      var pill = document.createElement("div"); pill.className = "term-pill";
+      var txt = document.createElement("span"); txt.textContent = p;
+      var rm = document.createElement("button"); rm.className = "pill-rm"; rm.type = "button";
+      rm.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      rm.addEventListener("click", function(){
+        var np = parts.filter(function(_,i){ return i!==idx; });
+        inp.value = np.join(" + ");
+        clrBtn.classList.toggle("visible", inp.value.length>0);
+        inp.value ? buscar(inp.value) : showHint();
       });
-      var map = { grid: "btnGrid", list: "btnList", group: "btnGroup" };
-      var ab = document.getElementById(map[v]);
-      if (ab) ab.classList.add("active");
-
-      var list = document.querySelector(".items-list");
-      if (!list) return;
-      if (instant) { list.classList.remove("view-grid","view-list","view-group"); list.classList.add("view-"+v); return; }
-      list.classList.add("items-list--leaving");
-      setTimeout(function () {
-        list.classList.remove("items-list--leaving","view-grid","view-list","view-group");
-        list.classList.add("view-"+v,"items-list--entering");
-        setTimeout(function () { list.classList.remove("items-list--entering"); }, 220);
-        if (lastResults.length && lastTermo) {
-          setTimeout(function () {
-            var p = lastTermo.toLowerCase().split("+").map(function (x) { return x.trim(); }).filter(Boolean);
-            renderItems(lastResults, p);
-          }, 10);
-        }
-      }, 170);
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       DENSIDADE
-    ══════════════════════════════════════════════════════════════════════════ */
-    var densities = ["normal","compact","spacious"];
-    var densityLabels = { normal:"Normal", compact:"Compacto", spacious:"Espaçoso" };
-    var currentDensity = localStorage.getItem("inv_density") || "normal";
-    applyDensity(currentDensity);
-    document.getElementById("densityBtn").addEventListener("click", function () {
-      var i = densities.indexOf(currentDensity);
-      applyDensity(densities[(i + 1) % densities.length]);
+      pill.appendChild(txt); pill.appendChild(rm); tPills.appendChild(pill);
     });
-    function applyDensity(d) {
-      currentDensity = d;
-      localStorage.setItem("inv_density", d);
-      document.documentElement.setAttribute("data-density", d);
-      var btn = document.getElementById("densityBtn");
-      if (btn) btn.textContent = densityLabels[d];
-    }
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       VARIÁVEIS GLOBAIS
-    ══════════════════════════════════════════════════════════════════════════ */
-    var RECENTS_KEY      = "inv_recents";
-    var MAX_RECENTS      = 6;
-    var CACHE_PREFIX     = "inv_cache_";
-    var CACHE_TTL        = 5 * 60 * 1000;
-    var debounceTimer    = null;
-    var searchStartTime  = 0;
-    var lastResults      = [];
-    var lastTermo        = "";
-    var focusedIdx       = -1;
-    var searchFocusedOnce = false;
-    var toastTimer       = null;
-    var sessionCount     = 0;
-    var highContrast     = false;
-    var clearConfirming  = false;
+  /* ════════════════════════════════════════════════════════════════════════
+     13. INPUT & DEBOUNCE
+  ════════════════════════════════════════════════════════════════════════ */
+  inp.addEventListener("input", onInput);
+  clrBtn.addEventListener("click", clearSearch);
 
-    var searchInput = document.getElementById("search");
-    var clearBtn    = document.getElementById("clearBtn");
-    var resultsEl   = document.getElementById("results");
-    var loadingEl   = document.getElementById("loading");
-    var countEl     = document.getElementById("resultCount");
-    var statusBar   = document.getElementById("statusBar");
-    var recentsEl   = document.getElementById("recents");
-    var recentsWrap = document.getElementById("recentsWrap");
-    var heroSubEl   = document.getElementById("heroSub");
-    var heroSubDefault = heroSubEl ? heroSubEl.textContent : "";
+  function onInput() {
+    var t = inp.value;
+    clrBtn.classList.toggle("visible", t.length>0);
+    updateGhost(); clearTimeout(debTimer);
+    if (!t.trim())           { showHint();     updatePills(""); return; }
+    if (t.trim().length < 2) { showMinChars(); updatePills(""); return; }
+    updatePills(t);
+    debTimer = setTimeout(function(){ buscar(t); }, 280);
+  }
 
-    document.getElementById("exportBtn").addEventListener("click", exportResults);
-    document.getElementById("clearAllBtn").addEventListener("click", handleClearAll);
-    document.getElementById("scrollTopBtn").addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
-    document.getElementById("modalClose").addEventListener("click", closeModal);
-    document.getElementById("shortcutsModal").addEventListener("click", function (e) { if (e.target === this) closeModal(); });
+  function clearSearch() {
+    inp.value = ""; clrBtn.classList.remove("visible");
+    ghost.textContent = ""; updatePills(""); showHint(); inp.focus(); curData = [];
+  }
 
-    /* Primeiro foco */
-    searchInput.addEventListener("focus", function () {
-      if (!searchFocusedOnce) {
-        searchFocusedOnce = true;
-        searchInput.classList.add("search-box--first-focus");
-        setTimeout(function () { searchInput.classList.remove("search-box--first-focus"); }, 800);
-      }
-    });
+  /* ════════════════════════════════════════════════════════════════════════
+     14. COMPARTILHAR BUSCA (URL hash)
+  ════════════════════════════════════════════════════════════════════════ */
+  shareBtn.addEventListener("click", function(){
+    var t = inp.value.trim(); if (!t) { toast("Nenhuma busca ativa","err"); return; }
+    var url = window.location.href.split("#")[0] + "#q=" + encodeURIComponent(t);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function(){ toast("Link copiado!","copy"); });
+    } else { toast("Link pronto — copie da barra de endereços","ok"); }
+  });
 
-    /* Scroll to top */
-    window.addEventListener("scroll", function () {
-      document.getElementById("scrollTopBtn").classList.toggle("visible", window.scrollY > 300);
-    });
+  function checkHash() {
+    try {
+      var m = window.location.hash.match(/[#&]q=([^&]*)/);
+      if (m) { var q=decodeURIComponent(m[1]); inp.value=q; clrBtn.classList.add("visible"); buscar(q); }
+    } catch(e){}
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       TECLADO
-    ══════════════════════════════════════════════════════════════════════════ */
-    document.addEventListener("keydown", function (e) {
-      var modal = document.getElementById("shortcutsModal");
+  /* ════════════════════════════════════════════════════════════════════════
+     15. CACHE DE SESSÃO
+  ════════════════════════════════════════════════════════════════════════ */
+  function getCache(k) { try{ return JSON.parse(sessionStorage.getItem("inv_c_"+k)); }catch(e){ return null; } }
+  function setCache(k,d){ try{ sessionStorage.setItem("inv_c_"+k, JSON.stringify(d)); }catch(e){} }
 
-      /* Escape */
-      if (e.key === "Escape") {
-        if (modal.classList.contains("modal--open")) { closeModal(); return; }
-        if (document.activeElement === searchInput) { searchInput.blur(); focusedIdx = -1; clearItemFocus(); }
-        return;
-      }
-      /* ? → modal */
-      if (e.key === "?" && document.activeElement !== searchInput && !modal.classList.contains("modal--open")) {
-        e.preventDefault(); openModal(); return;
-      }
-      /* Alt+C → alto contraste */
-      if (e.altKey && (e.key === "c" || e.key === "C")) {
-        e.preventDefault(); toggleHighContrast(); return;
-      }
-      /* / → focar */
-      if (e.key === "/" && document.activeElement !== searchInput) {
-        e.preventDefault(); searchInput.focus(); searchInput.select(); return;
-      }
-      /* Tab → aceitar sugestão */
-      if (e.key === "Tab" && document.activeElement === searchInput) {
-        var gh = document.getElementById("ghostHint");
-        if (gh && gh.dataset.value) {
-          e.preventDefault();
-          searchInput.value = gh.dataset.value;
-          gh.textContent = ""; gh.dataset.value = "";
-          clearBtn.classList.add("visible");
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(function () { buscar(searchInput.value); }, 100);
-        }
-        return;
-      }
-      /* ↑↓ Enter */
-      var items = document.querySelectorAll(".items-list .item");
-      if (!items.length) return;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        focusedIdx = Math.min(focusedIdx + 1, items.length - 1);
-        setItemFocus(items, focusedIdx);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        focusedIdx = Math.max(focusedIdx - 1, 0);
-        setItemFocus(items, focusedIdx);
-      } else if (e.key === "Enter" && focusedIdx >= 0 && document.activeElement !== searchInput) {
-        e.preventDefault();
-        var f = items[focusedIdx];
-        if (f) copyAndToast(f.dataset.produto, f.dataset.caixa);
-      }
-    });
+  /* ════════════════════════════════════════════════════════════════════════
+     16. CHAMADA À API
+  ════════════════════════════════════════════════════════════════════════ */
+  function buscar(termo) {
+    curTermo = termo; t0 = Date.now();
+    spinIcon(); sIcon.classList.add("pulse");
+    var cached = getCache(termo.toLowerCase().trim());
+    if (cached) { render(cached, termo, true); return; }
+    setLoad(true); toolbar.classList.remove("open");
+    resEl.innerHTML = ""; skelEl.style.display = "flex";
+    google.script.run
+      .withSuccessHandler(function(d){ render(d, termo, false); })
+      .withFailureHandler(onError)
+      .buscarProdutosWeb(termo);
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       INPUT
-    ══════════════════════════════════════════════════════════════════════════ */
-    searchInput.addEventListener("input", onInput);
-    clearBtn.addEventListener("click", clearSearch);
+  /* ════════════════════════════════════════════════════════════════════════
+     17. RENDERIZAÇÃO
+  ════════════════════════════════════════════════════════════════════════ */
+  function render(data, termo, fromCache) {
+    var elapsed = Date.now() - t0;
+    setLoad(false); skelEl.style.display = "none";
+    sIcon.classList.remove("pulse"); resEl.innerHTML = ""; navIdx = -1;
 
-    function onInput() {
-      var termo = searchInput.value;
-      clearBtn.classList.toggle("visible", termo.length > 0);
-      clearTimeout(debounceTimer);
-      updateGhostHint(termo);
-      /* Cubo acelera ao digitar */
-      var cube = document.querySelector(".cube");
-      if (cube) cube.style.animationDuration = termo.trim().length >= 2 ? "1.2s" : "6s";
-      if (!termo.trim())           { showHint();     return; }
-      if (termo.trim().length < 2) { showMinChars(); return; }
-      debounceTimer = setTimeout(function () { buscar(termo); }, 300);
-    }
+    if (!data || !data.length) { toolbar.classList.remove("open"); resEl.appendChild(mkState("empty")); return; }
 
-    function clearSearch() {
-      searchInput.value = "";
-      clearBtn.classList.remove("visible");
-      clearGhostHint();
-      clearTermPills();
-      showHint();
-      searchInput.focus();
-    }
+    curData = data; saveRec(termo); setCache(termo.toLowerCase().trim(), data);
+    sesS++; sesH += data.length; stS.textContent=sesS; stH.textContent=sesH;
+    statsPill.style.display = "flex";
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       STATUS BAR
-    ══════════════════════════════════════════════════════════════════════════ */
-    function showStatusBar() { statusBar.classList.add("visible"); }
-    function hideStatusBar()  { statusBar.classList.remove("visible"); countEl.innerHTML = ""; }
+    var total = data.length;
+    rCount.innerHTML = "<strong id='cEl'>" + total + "</strong> produto" + (total!==1?"s":"");
+    rTime.textContent = fromCache ? "⚡ cache" : elapsed + "ms";
+    toolbar.classList.add("open");
+    animCount(document.getElementById("cEl"), 0, total, 500);
+    renderData(data, termo);
+    if (total === 1) fireConfetti();
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       CACHE (sessionStorage, 5 min)
-    ══════════════════════════════════════════════════════════════════════════ */
-    function getCached(termo) {
-      try {
-        var raw = sessionStorage.getItem(CACHE_PREFIX + normKey(termo));
-        if (!raw) return null;
-        var e = JSON.parse(raw);
-        if (Date.now() - e.ts > CACHE_TTL) { sessionStorage.removeItem(CACHE_PREFIX + normKey(termo)); return null; }
-        return e.data;
-      } catch (_) { return null; }
-    }
-    function setCache(termo, data) {
-      try { sessionStorage.setItem(CACHE_PREFIX + normKey(termo), JSON.stringify({ data: data, ts: Date.now() })); } catch (_) {}
-    }
-    function normKey(s) { return s.trim().toLowerCase(); }
+  function renderData(data, termo) {
+    resEl.innerHTML = ""; navIdx = -1;
+    var pals = (termo||curTermo).toLowerCase().split("+").map(function(p){ return p.trim(); }).filter(Boolean);
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       RECENTES
-    ══════════════════════════════════════════════════════════════════════════ */
-    function getRecents() { try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; } catch (_) { return []; } }
-
-    function saveRecent(t) {
-      var s = t.trim();
-      if (!s || s.length < 2) return;
-      var r = getRecents().filter(function (x) { return x !== s; });
-      r.unshift(s); r = r.slice(0, MAX_RECENTS);
-      localStorage.setItem(RECENTS_KEY, JSON.stringify(r));
-      renderRecents(); updateStats();
-    }
-    function removeRecent(t) {
-      var r = getRecents().filter(function (x) { return x !== t; });
-      localStorage.setItem(RECENTS_KEY, JSON.stringify(r));
-      renderRecents(); updateStats();
-    }
-    function handleClearAll() {
-      if (clearConfirming) return;
-      clearConfirming = true;
-      var btn = document.getElementById("clearAllBtn");
-      btn.innerHTML = 'Tem certeza? ';
-      var yes = document.createElement("button"); yes.className = "confirm-yes"; yes.textContent = "Sim";
-      var sep = document.createTextNode(" / ");
-      var no  = document.createElement("button"); no.className = "confirm-no"; no.textContent = "Não";
-      yes.addEventListener("click", function (e) { e.stopPropagation(); clearConfirming = false; clearAllRecents(); });
-      no.addEventListener("click",  function (e) { e.stopPropagation(); clearConfirming = false; btn.textContent = "Limpar tudo"; });
-      btn.appendChild(yes); btn.appendChild(sep); btn.appendChild(no);
-    }
-    function clearAllRecents() {
-      localStorage.removeItem(RECENTS_KEY);
-      document.getElementById("clearAllBtn").textContent = "Limpar tudo";
-      renderRecents(); updateStats();
-    }
-
-    function renderRecents() {
-      var recents = getRecents();
-      recentsEl.innerHTML = "";
-      if (!recents.length) { recentsWrap.style.display = "none"; return; }
-      recentsWrap.style.display = "block";
-      recents.forEach(function (r) {
-        var chip = document.createElement("button");
-        chip.className = "chip"; chip.type = "button";
-        var iconEl = document.createElement("span");
-        iconEl.className = "chip-icon";
-        iconEl.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-        var textEl = document.createElement("span");
-        textEl.className = "chip-text"; textEl.textContent = r;
-        var rmBtn = document.createElement("button");
-        rmBtn.className = "chip-remove"; rmBtn.type = "button"; rmBtn.setAttribute("aria-label","Remover");
-        rmBtn.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-        rmBtn.addEventListener("click", function (e) { e.stopPropagation(); removeRecent(r); });
-        chip.addEventListener("click", function () { searchInput.value = r; clearBtn.classList.add("visible"); buscar(r); });
-        chip.appendChild(iconEl); chip.appendChild(textEl); chip.appendChild(rmBtn);
-        recentsEl.appendChild(chip);
-      });
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       BUSCA
-    ══════════════════════════════════════════════════════════════════════════ */
-    function buscar(termo) {
-      lastTermo = termo;
-      sessionCount++;
-      var cached = getCached(termo);
-      if (cached) {
-        renderData(cached, termo, true);
-        return;
-      }
-      setLoading(true);
-      showStatusBar();
-      focusedIdx = -1;
-      searchStartTime = Date.now();
-      document.body.classList.add("is-loading");
-      showSkeleton();
-      google.script.run
-        .withSuccessHandler(function (data) { render(data, termo); })
-        .withFailureHandler(onError)
-        .buscarProdutosWeb(termo);
-    }
-
-    function showSkeleton() {
-      resultsEl.innerHTML = "";
-      var grid = document.createElement("div");
-      grid.className = "skeleton-grid";
-      for (var i = 0; i < 4; i++) {
-        var sk = document.createElement("div");
-        sk.className = "skeleton-card";
-        sk.innerHTML = '<div class="sk-icon"></div><div class="sk-lines"><div class="sk-line sk-line--title"></div><div class="sk-line sk-line--badge"></div></div>';
-        grid.appendChild(sk);
-      }
-      resultsEl.appendChild(grid);
-    }
-
-    function render(data, termo) {
-      document.body.classList.remove("is-loading");
-      setLoading(false);
-      if (data && data.length) setCache(termo, data);
-      renderData(data, termo, false);
-    }
-
-    function renderData(data, termo, fromCache) {
-      setLoading(false);
-      document.body.classList.remove("is-loading");
-      resultsEl.innerHTML = "";
-      focusedIdx = -1;
-      if (!data || !data.length) {
-        lastResults = [];
-        hideStatusBar();
-        resultsEl.appendChild(buildState("empty"));
-        updateHero(null);
-        clearTermPills();
-        updateBadge(0);
-        return;
-      }
-      lastResults = data;
-      saveRecent(termo);
-      var total = data.length;
-      if (fromCache) {
-        countEl.innerHTML = "<strong>" + total + "</strong> produto" + (total!==1?"s":"") + " encontrado" + (total!==1?"s":"") + " <span class='cache-badge'>cache</span>";
-        showStatusBar();
-      } else {
-        var elapsed = Date.now() - searchStartTime;
-        animateCount(total, elapsed);
-        showStatusBar();
-      }
-      var palavras = termo.toLowerCase().split("+").map(function (p) { return p.trim(); }).filter(Boolean);
-      renderItems(data, palavras);
-      updateHero(termo);
-      updateTermPills(palavras);
-      updateBadge(total);
-      updateStats();
-    }
-
-    function renderItems(data, palavras) {
-      resultsEl.innerHTML = "";
-      if (currentView === "group") { renderGroupView(data, palavras); return; }
-      var list = document.createElement("div");
-      list.className = "items-list view-" + currentView;
+    if (viewMode==="list") {
+      resEl.appendChild(buildList(data, pals, "items-list"));
+    } else if (viewMode==="grid") {
+      resEl.appendChild(buildList(data, pals, "items-grid"));
+    } else {
+      var groups = {};
+      data.forEach(function(it){ var k=it.caixa||"Sem caixa"; if(!groups[k]) groups[k]=[]; groups[k].push(it); });
       var frag = document.createDocumentFragment();
-      data.forEach(function (item, i) { frag.appendChild(buildItem(item, i, palavras)); });
-      list.appendChild(frag);
-      resultsEl.appendChild(list);
+      Object.keys(groups).sort().forEach(function(caixa){ frag.appendChild(mkGroup(caixa, groups[caixa], pals)); });
+      resEl.appendChild(frag);
     }
+  }
 
-    function buildItem(item, i, palavras) {
-      var div = document.createElement("div");
-      div.className = "item";
-      div.style.animationDelay = (i * 40) + "ms";
-      div.dataset.produto = item.produto;
-      div.dataset.caixa   = item.caixa;
-      div.title = "Clique para copiar";
-      div.addEventListener("click", function () { copyAndToast(item.produto, item.caixa); });
-      div.innerHTML =
-        '<div class="item-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>' +
-        '<div class="item-info"><div class="produto">' + highlight(item.produto, palavras) + '</div>' +
-        '<div class="caixa-badge"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' + escHtml(item.caixa) + '</div></div>';
-      return div;
+  function buildList(data, pals, cls) {
+    var wrap = document.createElement("div"); wrap.className = cls;
+    var frag = document.createDocumentFragment();
+    data.forEach(function(it, i){ frag.appendChild(mkItem(it, pals, i)); });
+    wrap.appendChild(frag); return wrap;
+  }
+
+  function mkGroup(caixa, items, pals) {
+    var wrap = document.createElement("div");
+    var hd   = document.createElement("div"); hd.className = "group-hd";
+    var ttl  = document.createElement("div"); ttl.className = "group-title"; ttl.textContent = caixa;
+    var cnt  = document.createElement("span"); cnt.className = "group-cnt"; cnt.textContent = items.length + " item" + (items.length!==1?"s":"");
+    var chev = document.createElement("div"); chev.className = "group-chev";
+    chev.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+    hd.appendChild(ttl); hd.appendChild(cnt); hd.appendChild(chev);
+    var bd = document.createElement("div"); bd.className = "group-bd";
+    var lst = document.createElement("div"); lst.className = "items-list";
+    items.forEach(function(it,i){ lst.appendChild(mkItem(it,pals,i)); });
+    bd.appendChild(lst);
+    hd.addEventListener("click", function(){ var c=bd.classList.toggle("col"); chev.classList.toggle("col",c); });
+    wrap.appendChild(hd); wrap.appendChild(bd); return wrap;
+  }
+
+  function mkItem(item, pals, i) {
+    var div = document.createElement("div"); div.className = "item";
+    div.style.animationDelay = (i*40)+"ms"; div.setAttribute("tabindex","0");
+    var ico = document.createElement("div"); ico.className = "item-icon";
+    ico.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>';
+    var info = document.createElement("div"); info.className = "item-info";
+    var nome = document.createElement("div"); nome.className = "produto"; nome.innerHTML = hl(item.produto, pals);
+    var badge = document.createElement("div"); badge.className = "caixa-badge";
+    badge.innerHTML = '<svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
+    badge.appendChild(document.createTextNode(item.caixa));
+    var hint = document.createElement("span"); hint.className = "copy-hint"; hint.textContent = "copiar";
+    info.appendChild(nome); info.appendChild(badge);
+    div.appendChild(ico); div.appendChild(info); div.appendChild(hint);
+    div.addEventListener("click",   function(){ copyItem(item, div); });
+    div.addEventListener("keydown", function(e){ if(e.key==="Enter") copyItem(item, div); });
+    return div;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     18. COPIAR AO CLICAR
+  ════════════════════════════════════════════════════════════════════════ */
+  function copyItem(item, el) {
+    var txt = item.produto + " — " + item.caixa;
+    function done() { el.classList.add("copied"); setTimeout(function(){ el.classList.remove("copied"); },700); toast("Copiado: "+item.produto,"copy"); }
+    if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(done).catch(function(){ fbCopy(txt); done(); }); }
+    else { fbCopy(txt); done(); }
+  }
+
+  function fbCopy(txt) {
+    var ta = document.createElement("textarea"); ta.value = txt;
+    ta.style.cssText = "position:fixed;opacity:0;top:0;left:0;";
+    document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     19. CONTADOR ANIMADO
+  ════════════════════════════════════════════════════════════════════════ */
+  function animCount(el, from, to, dur) {
+    if (!el) return; var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts-start)/dur, 1), e = 1-Math.pow(1-p,3);
+      el.textContent = Math.round(from+(to-from)*e);
+      if (p<1) requestAnimationFrame(step); else el.textContent = to;
     }
+    requestAnimationFrame(step);
+  }
 
-    function renderGroupView(data, palavras) {
-      var groups = {}, order = [];
-      data.forEach(function (item) {
-        if (!groups[item.caixa]) { groups[item.caixa] = []; order.push(item.caixa); }
-        groups[item.caixa].push(item);
+  /* ════════════════════════════════════════════════════════════════════════
+     20. EXPORTAR CSV
+  ════════════════════════════════════════════════════════════════════════ */
+  exportBtn.addEventListener("click", exportCSV);
+  function exportCSV() {
+    if (!curData.length) { toast("Sem resultados para exportar","err"); return; }
+    var rows = ["Produto,Caixa"];
+    curData.forEach(function(it){
+      rows.push('"'+String(it.produto).replace(/"/g,'""')+'"'+','+ '"'+String(it.caixa).replace(/"/g,'""')+'"');
+    });
+    var blob = new Blob(["\uFEFF"+rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a"); a.href=url; a.download="inventario_"+Date.now()+".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast("CSV exportado — "+curData.length+" itens","ok");
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     21. IMPRIMIR
+  ════════════════════════════════════════════════════════════════════════ */
+  printBtn.addEventListener("click", function(){ window.print(); });
+
+  /* ════════════════════════════════════════════════════════════════════════
+     22. CONFETTI (resultado único)
+  ════════════════════════════════════════════════════════════════════════ */
+  function fireConfetti() {
+    if (confBusy) return; confBusy = true;
+    var cv = document.getElementById("confetti"), ctx = cv.getContext("2d");
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    var cols = ["#4caf50","#66bb6a","#ffb300","#1565c0","#e91e63","#9c27b0"], ps = [];
+    for (var i=0;i<80;i++) ps.push({x:Math.random()*cv.width,y:-10,w:Math.random()*8+4,h:Math.random()*3+2,vx:(Math.random()-.5)*3,vy:Math.random()*4+2,a:Math.random()*360,s:(Math.random()-.5)*6,c:cols[Math.floor(Math.random()*cols.length)],op:1});
+    var fr=0;
+    (function loop(){
+      ctx.clearRect(0,0,cv.width,cv.height); var alive=false;
+      ps.forEach(function(p){
+        if(p.op<=0) return; alive=true; p.x+=p.vx; p.y+=p.vy; p.a+=p.s;
+        if(p.y>cv.height*.7) p.op-=0.025;
+        ctx.save(); ctx.globalAlpha=p.op; ctx.translate(p.x,p.y); ctx.rotate(p.a*Math.PI/180);
+        ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
       });
-      var container = document.createElement("div");
-      container.className = "items-list view-group";
-      order.forEach(function (caixa, gi) {
-        var section = document.createElement("div");
-        section.className = "group-section";
-        section.style.animationDelay = (gi * 55) + "ms";
-        var header = document.createElement("button");
-        header.className = "group-header"; header.type = "button";
-        header.innerHTML =
-          '<svg class="group-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>' +
-          '<svg class="group-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
-          '<span class="group-name">' + escHtml(caixa) + '</span>' +
-          '<span class="group-count">' + groups[caixa].length + '</span>';
-        var body = document.createElement("div");
-        body.className = "group-body";
-        groups[caixa].forEach(function (item, i) { body.appendChild(buildItem(item, i, palavras)); });
-        header.addEventListener("click", function () { section.classList.toggle("collapsed"); });
-        section.appendChild(header); section.appendChild(body);
-        container.appendChild(section);
-      });
-      resultsEl.appendChild(container);
-    }
+      if(alive&&fr++<140) requestAnimationFrame(loop);
+      else { ctx.clearRect(0,0,cv.width,cv.height); confBusy=false; }
+    })();
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       CONTAGEM ANIMADA
-    ══════════════════════════════════════════════════════════════════════════ */
-    function animateCount(total, elapsed) {
-      var startTs = null;
-      var dur = 200;
-      function step(ts) {
-        if (!startTs) startTs = ts;
-        var p = Math.min((ts - startTs) / dur, 1);
-        var n = Math.round(p * total);
-        countEl.innerHTML = "<strong>" + n + "</strong> produto" + (total!==1?"s":"") + " encontrado" + (total!==1?"s":"") + " <span style='opacity:.5;font-size:11px'>(" + elapsed + "ms)</span>";
-        if (p < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }
+  /* ════════════════════════════════════════════════════════════════════════
+     23. HIGHLIGHT (seguro contra XSS)
+  ════════════════════════════════════════════════════════════════════════ */
+  function hl(text, pals) {
+    var s = String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    pals.forEach(function(p){
+      if (!p) return;
+      s = s.replace(new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"), function(m){ return "<mark>"+m+"</mark>"; });
+    });
+    return s;
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       HIGHLIGHT / ESCAPE
-    ══════════════════════════════════════════════════════════════════════════ */
-    function highlight(text, palavras) {
-      var safe = escHtml(text);
-      palavras.forEach(function (p) {
-        if (!p) return;
-        var re = new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-        safe = safe.replace(re, function (m) { return "<mark>" + m + "</mark>"; });
-      });
-      return safe;
-    }
-    function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  /* ════════════════════════════════════════════════════════════════════════
+     24. ERRO
+  ════════════════════════════════════════════════════════════════════════ */
+  function onError() {
+    setLoad(false); skelEl.style.display="none"; toolbar.classList.remove("open");
+    sIcon.classList.remove("pulse"); resEl.innerHTML="";
+    var d = document.createElement("div"); d.className = "error-box";
+    d.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    var msg = document.createElement("span"); msg.textContent = "Erro ao buscar. Verifique sua conexão e tente novamente.";
+    d.appendChild(msg); resEl.appendChild(d);
+    toast("Erro na busca","err");
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       ERRO
-    ══════════════════════════════════════════════════════════════════════════ */
-    function onError() {
-      document.body.classList.remove("is-loading");
-      setLoading(false); hideStatusBar();
-      resultsEl.innerHTML = "";
-      updateBadge(0);
-      var err = document.createElement("div");
-      err.className = "error";
-      err.innerHTML = '<div class="error-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><span>Erro ao buscar. Verifique sua conexão e tente novamente.</span>';
-      resultsEl.appendChild(err);
-    }
+  /* ════════════════════════════════════════════════════════════════════════
+     25. ESTADOS (hint, empty, min)
+  ════════════════════════════════════════════════════════════════════════ */
+  function setLoad(on) { loadEl.classList.toggle("visible",on); }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       AUXILIARES
-    ══════════════════════════════════════════════════════════════════════════ */
-    function setLoading(on) { loadingEl.classList.toggle("visible", on); }
+  function showHint() {
+    toolbar.classList.remove("open"); resEl.innerHTML=""; resEl.appendChild(mkState("hint")); curData=[];
+  }
+  function showMinChars() { toolbar.classList.remove("open"); resEl.innerHTML=""; resEl.appendChild(mkState("min")); }
 
-    function showHint() {
-      hideStatusBar(); resultsEl.innerHTML = "";
-      updateHero(null); clearTermPills(); updateBadge(0);
-      resultsEl.appendChild(buildState("hint"));
-    }
-    function showMinChars() {
-      hideStatusBar(); resultsEl.innerHTML = "";
-      resultsEl.appendChild(buildState("min"));
-    }
+  function mkState(t) {
+    var w = document.createElement("div"); w.className = "state state-"+t;
+    if (t==="hint") w.innerHTML =
+      '<div class="state-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+      '<div class="state-title">Busca de Inventário</div>' +
+      '<div class="state-sub">Digite para localizar produtos<br>Use <span class="kbd-hint">+</span> para combinar termos · <span class="kbd-hint">?</span> para atalhos</div>';
+    else if (t==="empty") w.innerHTML =
+      '<div class="state-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>' +
+      '<div class="state-title">Nenhum produto encontrado</div>' +
+      '<div class="state-sub">Tente outros termos ou verifique a grafia</div>';
+    else w.innerHTML =
+      '<div class="state-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+      '<div class="state-title">Digite ao menos 2 caracteres</div>';
+    return w;
+  }
 
-    function buildState(type) {
-      var wrap = document.createElement("div");
-      wrap.className = "state";
-      if (type === "hint") {
-        wrap.classList.add("state-hint");
-        wrap.innerHTML = '<div class="cube-scene"><div class="cube" id="mainCube"><div class="cube-face cube-face--front"></div><div class="cube-face cube-face--back"></div><div class="cube-face cube-face--left"></div><div class="cube-face cube-face--right"></div><div class="cube-face cube-face--top"></div><div class="cube-face cube-face--bottom"></div></div></div><div class="state-title">Busca de Inventário</div><div class="state-sub">Digite o nome do produto para localizar</div>';
-      } else if (type === "empty") {
-        wrap.classList.add("state-empty");
-        wrap.innerHTML = '<div class="state-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div><div class="state-title">Nenhum produto encontrado</div><div class="state-sub">Tente outros termos ou verifique a grafia</div>';
-      } else {
-        wrap.classList.add("state-min");
-        wrap.innerHTML = '<div class="state-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="state-title">Digite ao menos 2 caracteres</div>';
-      }
-      return wrap;
-    }
+  /* ════════════════════════════════════════════════════════════════════════
+     HELPERS
+  ════════════════════════════════════════════════════════════════════════ */
+  function spinIcon() {
+    hIcon.classList.remove("spin");
+    void hIcon.offsetWidth; // force reflow
+    hIcon.classList.add("spin");
+    setTimeout(function(){ hIcon.classList.remove("spin"); }, 550);
+  }
 
-    /* ══════════════════════════════════════════════════════════════════════════
-       CLIPBOARD / TOAST
-    ══════════════════════════════════════════════════════════════════════════ */
-    function copyAndToast(produto, caixa) {
-      var text = caixa ? (produto + " — " + caixa) : produto;
-      copyText(text, "Copiado!");
-    }
-    function copyText(text, msg) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () { showToast(msg || "Copiado!"); });
-      } else {
-        var ta = document.createElement("textarea");
-        ta.value = text; ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
-        document.body.appendChild(ta); ta.select();
-        try { document.execCommand("copy"); showToast(msg || "Copiado!"); } catch (_) {}
-        document.body.removeChild(ta);
-      }
-    }
-    function showToast(msg) {
-      document.getElementById("toastMsg").textContent = msg;
-      document.getElementById("toast").classList.add("toast--visible");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { document.getElementById("toast").classList.remove("toast--visible"); }, 2000);
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       EXPORTAR — lista numerada
-    ══════════════════════════════════════════════════════════════════════════ */
-    function exportResults() {
-      if (!lastResults.length) return;
-      var text = lastResults.map(function (r, i) { return (i+1) + ". " + r.produto + " — " + r.caixa; }).join("\n");
-      copyText(text, lastResults.length + " produtos copiados");
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       NAVEGAÇÃO
-    ══════════════════════════════════════════════════════════════════════════ */
-    function setItemFocus(items, idx) {
-      items.forEach(function (el, i) { el.classList.toggle("item--focused", i === idx); });
-      if (items[idx]) items[idx].scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-    function clearItemFocus() { document.querySelectorAll(".item--focused").forEach(function (el) { el.classList.remove("item--focused"); }); }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       MODAL
-    ══════════════════════════════════════════════════════════════════════════ */
-    function openModal()  { document.getElementById("shortcutsModal").classList.add("modal--open"); document.body.style.overflow = "hidden"; }
-    function closeModal() { document.getElementById("shortcutsModal").classList.remove("modal--open"); document.body.style.overflow = ""; }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       ALTO CONTRASTE (Alt+C)
-    ══════════════════════════════════════════════════════════════════════════ */
-    function toggleHighContrast() {
-      highContrast = !highContrast;
-      document.documentElement.classList.toggle("high-contrast", highContrast);
-      showToast(highContrast ? "Alto contraste ativado" : "Contraste normal");
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       SUGESTÃO FANTASMA
-    ══════════════════════════════════════════════════════════════════════════ */
-    function updateGhostHint(termo) {
-      var el = document.getElementById("ghostHint");
-      if (!el) return;
-      var t = termo.trim();
-      if (!t) { el.innerHTML = ""; el.dataset.value = ""; return; }
-      var recents = getRecents();
-      var match = null;
-      for (var i = 0; i < recents.length; i++) {
-        if (recents[i].toLowerCase().startsWith(t.toLowerCase()) && recents[i].toLowerCase() !== t.toLowerCase()) { match = recents[i]; break; }
-      }
-      if (match) {
-        el.innerHTML = '<span class="ghost-tab">Tab</span>' + escHtml(match);
-        el.dataset.value = match;
-      } else {
-        el.innerHTML = ""; el.dataset.value = "";
-      }
-    }
-    function clearGhostHint() { var el = document.getElementById("ghostHint"); if (el) { el.innerHTML = ""; el.dataset.value = ""; } }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       PILLS DE TERMOS
-    ══════════════════════════════════════════════════════════════════════════ */
-    var PILL_COLORS = ["#43a047","#1976d2","#e53935","#f57c00","#8e24aa","#00838f"];
-    function updateTermPills(palavras) {
-      var el = document.getElementById("termPills");
-      if (!el) return;
-      if (!palavras || palavras.length <= 1) { el.innerHTML = ""; el.style.display = "none"; return; }
-      el.style.display = "flex";
-      el.innerHTML = palavras.map(function (p, i) {
-        var c = PILL_COLORS[i % PILL_COLORS.length];
-        return '<span class="term-pill" style="background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44">' + escHtml(p) + '</span>';
-      }).join('<span class="term-sep">+</span>');
-    }
-    function clearTermPills() { var el = document.getElementById("termPills"); if (el) { el.innerHTML = ""; el.style.display = "none"; } }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       HERO BREADCRUMB
-    ══════════════════════════════════════════════════════════════════════════ */
-    function updateHero(termo) {
-      if (!heroSubEl) return;
-      if (termo) {
-        heroSubEl.classList.add("hero-sub--result");
-        heroSubEl.innerHTML = "Mostrando: <strong>" + escHtml(termo) + "</strong>";
-      } else {
-        heroSubEl.classList.remove("hero-sub--result");
-        heroSubEl.textContent = heroSubDefault;
-      }
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       BADGE NO ÍCONE
-    ══════════════════════════════════════════════════════════════════════════ */
-    function updateBadge(n) {
-      var b = document.getElementById("resultBadge");
-      if (!b) return;
-      if (n > 0) { b.textContent = n > 99 ? "99+" : n; b.classList.add("visible"); }
-      else { b.classList.remove("visible"); }
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       ESTATÍSTICAS NO RODAPÉ
-    ══════════════════════════════════════════════════════════════════════════ */
-    function updateStats() {
-      var el = document.getElementById("statsText");
-      if (!el) return;
-      var recents = getRecents();
-      var most = recents.length ? recents[0] : null;
-      el.textContent = sessionCount + " busca" + (sessionCount !== 1 ? "s" : "") + " nesta sessão" + (most ? " · Mais recente: " + most : "");
-    }
-
-    /* ══════════════════════════════════════════════════════════════════════════
-       INIT
-    ══════════════════════════════════════════════════════════════════════════ */
-    renderRecents();
-    showHint();
-    updateStats();
+  /* ════════════════════════════════════════════════════════════════════════
+     INIT
+  ════════════════════════════════════════════════════════════════════════ */
+  initTheme(); initDens(); initHC(); initView(); initGreeting();
+  renderRec(); showHint(); checkHash();
   </script>
 </body>
 </html>
