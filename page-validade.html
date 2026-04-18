@@ -1,77 +1,92 @@
 <div id="page-validade" class="page">
-  <div class="val-page">
+
+  <!-- Header interno -->
+  <header class="page-header">
+    <button class="back-btn" id="backFromValidade" aria-label="Voltar para Home">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Home
+    </button>
+    <div>
+      <div class="page-title">Validade</div>
+      <div class="page-subtitle">Controle de prazos e vencimentos</div>
+    </div>
+    <div class="page-header-right">
+      <button class="icon-btn theme-btn" aria-label="Alternar tema" title="Alternar tema (Ctrl+D)">
+        <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="icon-btn shortcuts-btn" aria-label="Atalhos de teclado" title="Atalhos (?)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="page-content">
 
     <!-- Summary cards -->
-    <div class="val-summary">
-      <div class="val-summary-card">
-        <div class="val-sum-icon total">
-          <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-        </div>
-        <div>
-          <div class="val-sum-num" id="valSumTotal">—</div>
-          <div class="val-sum-lbl">Total de produtos</div>
-        </div>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-value" id="val-total">—</div>
+        <div class="summary-label">Total de produtos</div>
       </div>
-      <div class="val-summary-card">
-        <div class="val-sum-icon atencao">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <div>
-          <div class="val-sum-num" id="valSumAtencao">—</div>
-          <div class="val-sum-lbl">Atenção (0–90 dias)</div>
-        </div>
+      <div class="summary-card attention">
+        <div class="summary-value" id="val-atencao">—</div>
+        <div class="summary-label">Atenção (≤90 dias)</div>
       </div>
-      <div class="val-summary-card">
-        <div class="val-sum-icon critico">
-          <svg viewBox="0 0 24 24"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div>
-          <div class="val-sum-num" id="valSumCritico">—</div>
-          <div class="val-sum-lbl">Crítico / Vencido</div>
-        </div>
+      <div class="summary-card critical">
+        <div class="summary-value" id="val-critico">—</div>
+        <div class="summary-label">Crítico / Vencido</div>
       </div>
     </div>
 
     <!-- Filtros -->
-    <div class="val-filters">
+    <div class="filtros-bar">
       <input
-        class="val-filter-input" id="valFilterInput"
         type="search"
-        placeholder="Filtrar por nome de produto…"
+        id="val-search"
+        placeholder="Buscar produto…"
         autocomplete="off"
       >
-      <select class="val-select" id="valSortSelect">
-        <option value="nearest">Validade mais próxima</option>
-        <option value="farthest">Validade mais distante</option>
+      <select id="val-sort">
+        <option value="nearest">Validade (mais próxima)</option>
+        <option value="farthest">Validade (mais distante)</option>
         <option value="name">Produto A–Z</option>
         <option value="days">Dias restantes</option>
       </select>
-      <select class="val-select" id="valStatusSelect">
+      <select id="val-filter">
         <option value="all">Todos os status</option>
         <option value="ok">OK</option>
         <option value="atencao">Atenção</option>
         <option value="critico">Crítico</option>
         <option value="vencido">Vencido</option>
       </select>
-      <button class="val-refresh-btn" id="valRefreshBtn">
-        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.25"/></svg>
+      <button class="refresh-btn" id="val-refresh">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.25"/>
+        </svg>
         Atualizar
       </button>
     </div>
 
-    <div class="val-count-bar" id="valCountBar"></div>
+    <div class="val-count-bar" id="val-count-bar"></div>
 
     <!-- Skeleton loader -->
-    <div id="valLoading">
-      <div class="skeleton-list">
-        <div class="skeleton-item"><div class="skel-icon shimmer"></div><div class="skel-body"><div class="skel-line shimmer" style="width:65%"></div><div class="skel-line short shimmer"></div></div></div>
-        <div class="skeleton-item"><div class="skel-icon shimmer"></div><div class="skel-body"><div class="skel-line shimmer" style="width:50%"></div><div class="skel-line short shimmer"></div></div></div>
-        <div class="skeleton-item"><div class="skel-icon shimmer"></div><div class="skel-body"><div class="skel-line shimmer" style="width:72%"></div><div class="skel-line short shimmer"></div></div></div>
-      </div>
+    <div id="val-skel" style="display:none" class="skel-list">
+      <div class="skel-item shimmer"></div>
+      <div class="skel-item shimmer"></div>
+      <div class="skel-item shimmer"></div>
     </div>
 
-    <div id="valError" style="display:none"></div>
-    <div class="val-grid" id="valGrid" style="display:none"></div>
+    <!-- Grid de cards de validade -->
+    <div id="val-results" class="val-grid"></div>
 
   </div>
 </div>

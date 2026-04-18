@@ -1,87 +1,53 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light" data-density="normal">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <base target="_top">
-  <title>Sistema Essência</title>
+  <title>Essência do Brasil</title>
   <?!= include('estilos') ?>
 </head>
 <body>
-
-<!-- Orbs animados -->
-<div class="orbs" aria-hidden="true">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
-
-<?!= include('sidebar') ?>
-
-<!-- Main wrapper -->
-<div class="main-wrapper">
-  <header class="main-header">
-    <div class="mh-left">
-      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
-        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <div class="mh-breadcrumb">
-        <span>Sistema</span>
-        <span class="mh-bread-sep"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        <span class="mh-bread-current" id="breadcrumbCurrent">Inventário</span>
-      </div>
-      <span class="mh-greeting" id="headerGreeting"></span>
-    </div>
-    <div class="mh-right">
-      <span class="session-stats" id="sessionStats"></span>
-      <button class="icon-btn" id="hcBtn" title="Alto contraste" aria-label="Alto contraste">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" stroke-dasharray="3 2"/></svg>
-      </button>
-      <button class="icon-btn" id="shortcutsHeaderBtn" title="Atalhos (?)" aria-label="Atalhos">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <main id="main-content" class="main-content">
+  <div id="app">
+    <?!= include('home') ?>
     <?!= include('page-inventario') ?>
     <?!= include('page-validade') ?>
-  </main>
-</div>
-
-<!-- Toast -->
-<div class="toast-container" id="toastContainer" aria-live="polite"></div>
-
-<!-- Confetti -->
-<canvas id="confetti-canvas"></canvas>
-
-<!-- Scroll to top -->
-<button class="scroll-top" id="scrollTop" aria-label="Voltar ao topo">
-  <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-</button>
-
-<!-- Shortcuts overlay -->
-<div class="overlay-backdrop" id="shortcutsOverlay" role="dialog" aria-modal="true">
-  <div class="overlay-modal">
-    <div class="overlay-title">
-      Atalhos de teclado
-      <button class="overlay-close" id="overlayClose" aria-label="Fechar">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="shortcut-row"><span>Ir para Inventário</span><span class="shortcut-keys"><span class="kbd">1</span></span></div>
-    <div class="shortcut-row"><span>Ir para Validade</span><span class="shortcut-keys"><span class="kbd">2</span></span></div>
-    <div class="shortcut-row"><span>Focar busca</span><span class="shortcut-keys"><span class="kbd">/</span></span></div>
-    <div class="shortcut-row"><span>Aceitar sugestão</span><span class="shortcut-keys"><span class="kbd">Tab</span></span></div>
-    <div class="shortcut-row"><span>Navegar resultados</span><span class="shortcut-keys"><span class="kbd">↑</span><span class="kbd">↓</span></span></div>
-    <div class="shortcut-row"><span>Copiar item focado</span><span class="shortcut-keys"><span class="kbd">Enter</span></span></div>
-    <div class="shortcut-row"><span>Exportar CSV</span><span class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">E</span></span></div>
-    <div class="shortcut-row"><span>Alternar tema</span><span class="shortcut-keys"><span class="kbd">Ctrl</span><span class="kbd">D</span></span></div>
-    <div class="shortcut-row"><span>Fechar / limpar</span><span class="shortcut-keys"><span class="kbd">Esc</span></span></div>
-    <div class="shortcut-row"><span>Abrir atalhos</span><span class="shortcut-keys"><span class="kbd">?</span></span></div>
   </div>
-</div>
 
-<?!= include('scripts') ?>
+  <div class="toast-wrap" id="toastWrap"></div>
+  <canvas id="confetti"></canvas>
+
+  <button class="scroll-top" id="scrollTop" aria-label="Voltar ao topo">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
+  <!-- Shortcuts overlay -->
+  <div class="ov-bg" id="shortcutsOverlay" role="dialog" aria-modal="true" aria-label="Atalhos de teclado">
+    <div class="ov-card">
+      <div class="ov-title">
+        Atalhos de teclado
+        <button class="ov-close" id="overlayClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="sh-row"><span>Ir para Home</span><span><span class="kbd">H</span></span></div>
+      <div class="sh-row"><span>Ir para Inventário</span><span><span class="kbd">1</span></span></div>
+      <div class="sh-row"><span>Ir para Validade</span><span><span class="kbd">2</span></span></div>
+      <div class="sh-row"><span>Focar busca</span><span><span class="kbd">/</span></span></div>
+      <div class="sh-row"><span>Aceitar sugestão</span><span><span class="kbd">Tab</span></span></div>
+      <div class="sh-row"><span>Navegar resultados</span><span><span class="kbd">↑</span> <span class="kbd">↓</span></span></div>
+      <div class="sh-row"><span>Copiar item focado</span><span><span class="kbd">Enter</span></span></div>
+      <div class="sh-row"><span>Exportar CSV</span><span><span class="kbd">Ctrl</span> <span class="kbd">E</span></span></div>
+      <div class="sh-row"><span>Alternar tema</span><span><span class="kbd">Ctrl</span> <span class="kbd">D</span></span></div>
+      <div class="sh-row"><span>Fechar / limpar</span><span><span class="kbd">Esc</span></span></div>
+      <div class="sh-row"><span>Abrir atalhos</span><span><span class="kbd">?</span></span></div>
+    </div>
+  </div>
+
+  <?!= include('scripts') ?>
 </body>
 </html>
