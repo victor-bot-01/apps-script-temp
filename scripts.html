@@ -125,6 +125,11 @@ var ROUTER = {
       newEl.classList.add('active');
     }
 
+    /* Sincroniza mobile nav bar */
+    qsa('.mob-nav-item').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-nav') === pageId);
+    });
+
     if (pageId === 'home') {
       history.replaceState(null, '', window.location.pathname + window.location.search);
     } else {
@@ -149,6 +154,77 @@ var ROUTER = {
 };
 
 /* ═══════════════════════════════════════════════════
+   PARTÍCULAS — canvas da home
+   ═══════════════════════════════════════════════════ */
+var HOME_PARTICLES = {
+  canvas:    null,
+  ctx:       null,
+  particles: [],
+  animId:    null,
+
+  init: function() {
+    var canvas = qs('#homeParticles');
+    if (!canvas) return;
+    HOME_PARTICLES.canvas = canvas;
+    HOME_PARTICLES.ctx    = canvas.getContext('2d');
+    HOME_PARTICLES.resize();
+    HOME_PARTICLES.create();
+    HOME_PARTICLES.loop();
+    window.addEventListener('resize', HOME_PARTICLES.resize);
+  },
+
+  resize: function() {
+    var c = HOME_PARTICLES.canvas;
+    if (!c) return;
+    c.width  = c.offsetWidth  || window.innerWidth;
+    c.height = c.offsetHeight || window.innerHeight;
+  },
+
+  create: function() {
+    HOME_PARTICLES.particles = [];
+    var W = HOME_PARTICLES.canvas ? HOME_PARTICLES.canvas.width  : 800;
+    var H = HOME_PARTICLES.canvas ? HOME_PARTICLES.canvas.height : 600;
+    for (var i = 0; i < 55; i++) {
+      HOME_PARTICLES.particles.push({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r:  0.8 + Math.random() * 2,
+        a:  0.08 + Math.random() * 0.3
+      });
+    }
+  },
+
+  loop: function() {
+    var c = HOME_PARTICLES.canvas, ctx = HOME_PARTICLES.ctx;
+    if (!c || !ctx) return;
+    var W = c.width, H = c.height;
+    ctx.clearRect(0, 0, W, H);
+
+    HOME_PARTICLES.particles.forEach(function(p) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,230,118,' + p.a + ')';
+      ctx.fill();
+    });
+
+    HOME_PARTICLES.animId = requestAnimationFrame(HOME_PARTICLES.loop);
+  },
+
+  destroy: function() {
+    if (HOME_PARTICLES.animId) cancelAnimationFrame(HOME_PARTICLES.animId);
+    HOME_PARTICLES.animId = null;
+    window.removeEventListener('resize', HOME_PARTICLES.resize);
+    var c = HOME_PARTICLES.canvas;
+    if (c && HOME_PARTICLES.ctx) HOME_PARTICLES.ctx.clearRect(0, 0, c.width, c.height);
+  }
+};
+
+/* ═══════════════════════════════════════════════════
    HOME
    ═══════════════════════════════════════════════════ */
 var HOME = {
@@ -157,7 +233,7 @@ var HOME = {
   startClock: function() {
     clearInterval(HOME.clockTimer);
     function tick() {
-      var now    = new Date();
+      var now       = new Date();
       var mesesFull = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       var diasFull  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
@@ -165,11 +241,12 @@ var HOME = {
       var m = ('0'+now.getMinutes()).slice(-2);
       var s = ('0'+now.getSeconds()).slice(-2);
 
-      /* stats strip — relógio com segundos */
       var clockEl = qs('#heroStatClock');
       if (clockEl) clockEl.textContent = h+':'+m+':'+s;
 
-      /* footer — data e hora completa */
+      var ringClock = qs('#ringCoreClock');
+      if (ringClock) ringClock.textContent = h+':'+m;
+
       var dateEl = qs('#homeDateTime');
       if (dateEl) dateEl.textContent =
         diasFull[now.getDay()]+', '+now.getDate()+' de '+mesesFull[now.getMonth()]+' · '+h+':'+m;
@@ -178,8 +255,14 @@ var HOME = {
     HOME.clockTimer = setInterval(tick, 1000);
   },
 
-  init:    function() { HOME.startClock(); },
-  destroy: function() { clearInterval(HOME.clockTimer); }
+  init: function() {
+    HOME.startClock();
+    HOME_PARTICLES.init();
+  },
+  destroy: function() {
+    clearInterval(HOME.clockTimer);
+    HOME_PARTICLES.destroy();
+  }
 };
 
 /* ═══════════════════════════════════════════════════
@@ -715,13 +798,14 @@ var INV = {
    PAGE: VALIDADE
    ═══════════════════════════════════════════════════ */
 var VAL = {
-  data:          null,
-  filtered:      [],
-  filterQuery:   '',
-  filterStatus:  'all',
-  sortMode:      localStorage.getItem('val_sort') || 'nearest',
-  debounceTimer: null,
+  data:            null,
+  filtered:        [],
+  filterQuery:     '',
+  filterStatus:    'all',
+  sortMode:        localStorage.getItem('val_sort') || 'nearest',
+  debounceTimer:   null,
   _eventsAttached: false,
+  _hideVencidos:   false,
 
   loadData: function(forceRefresh) {
     if (!forceRefresh) {
@@ -771,10 +855,46 @@ var VAL = {
     if (ce) ce.textContent = critico;
   },
 
+  toggleVencidos: function() {
+    VAL._hideVencidos = !VAL._hideVencidos;
+    var lbl = qs('#val-toggle-inativo-lbl');
+    if (lbl) lbl.textContent = VAL._hideVencidos ? 'Mostrar Vencidos' : 'Ocultar Vencidos';
+
+    if (VAL._hideVencidos) {
+      /* animação de saída para cards vencidos */
+      qsa('#val-results .val-card.danger').forEach(function(card) {
+        card.classList.add('fading-out');
+        card.addEventListener('animationend', function() {
+          card.style.display = 'none';
+        }, { once: true });
+      });
+    } else {
+      /* reexibe e refaz render completo */
+      VAL.applyFilters();
+    }
+  },
+
+  enviarRelatorio: function() {
+    var btn = qs('#val-email-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relatório E-mail'; }
+        toast(res && res.msg ? res.msg : 'Relatório enviado!', 'ok');
+      })
+      .withFailureHandler(function(err) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relatório E-mail'; }
+        toast('Erro: ' + (err && err.message ? err.message : 'falha ao enviar'), 'err');
+      })
+      .enviarRelatorioInativo();
+  },
+
   applyFilters: function() {
     if (!VAL.data) return;
     var q = VAL.filterQuery.toLowerCase().trim(), st = VAL.filterStatus;
     var result = VAL.data.filter(function(r) {
+      if (VAL._hideVencidos && r.diasRestantes < 0) return false;
       if (q && q.length >= 2 && r.produto.toLowerCase().indexOf(q) === -1) return false;
       if (st !== 'all') {
         var s = (r.status||'').toLowerCase();
@@ -891,6 +1011,12 @@ var VAL = {
         try { sessionStorage.removeItem('val_cache'); } catch(e) {}
         VAL.data = null; VAL.loadData(true); toast('Atualizando dados…','ok');
       });
+
+      var toggleBtn = qs('#val-toggle-inativo');
+      if (toggleBtn) toggleBtn.addEventListener('click', VAL.toggleVencidos);
+
+      var emailBtn = qs('#val-email-btn');
+      if (emailBtn) emailBtn.addEventListener('click', VAL.enviarRelatorio);
     }
     VAL.loadData(false);
   },
@@ -933,6 +1059,14 @@ var backInv = qs('#backFromInventario');
 var backVal = qs('#backFromValidade');
 if (backInv) backInv.addEventListener('click', function(){ ROUTER.navigate('home'); });
 if (backVal) backVal.addEventListener('click', function(){ ROUTER.navigate('home'); });
+
+/* Mobile bottom nav — clique em cada item */
+qsa('.mob-nav-item').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var dest = btn.getAttribute('data-nav');
+    if (dest) ROUTER.navigate(dest);
+  });
+});
 
 qsa('.theme-btn').forEach(function(btn) {
   btn.addEventListener('click', THEME.toggle);

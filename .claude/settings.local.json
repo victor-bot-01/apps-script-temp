@@ -5,7 +5,9 @@
       "Bash(ls \"/c/Users/Victor Hugo/apps-script-temp/\"*.gs)",
       "Bash(where git *)",
       "Bash(/usr/bin/git --version)",
-      "Bash(cmd /c \"where git\")"
+      "Bash(cmd /c \"where git\")",
+      "Bash(git push *)",
+      "Bash(git add *)"
     ]
   }
 }
