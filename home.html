@@ -1,5 +1,8 @@
 <div id="page-home" class="page home-page active">
 
+  <!-- Perspectiva 3D (modo claro) -->
+  <div class="home-persp-grid" aria-hidden="true"></div>
+
   <!-- Partículas de fundo -->
   <canvas id="homeParticles" class="home-particles" aria-hidden="true"></canvas>
 
@@ -200,64 +203,21 @@
         </div>
       </div>
 
-      <!-- ─ Coluna direita: sistema de anéis de energia ─ -->
-      <div class="home-ring-col" aria-hidden="true">
-
-        <div class="ring-col-wrapper">
-
-          <!-- Leituras HUD à esquerda -->
-          <div class="hud-readout hud-ro-left">
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">SYS</span>
-              <span class="hud-ro-value">ONLINE</span>
-            </div>
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">MOD</span>
-              <span class="hud-ro-value">02/06</span>
-            </div>
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">VER</span>
-              <span class="hud-ro-value">v3.1</span>
-            </div>
-          </div>
-
-          <!-- Sistema de anéis -->
-          <div class="energy-ring-system">
-            <div class="ring r1"></div>
-            <div class="ring r2"></div>
-            <div class="ring r3"></div>
-            <div class="ring r4"></div>
-            <div class="ring-orb ro1"></div>
-            <div class="ring-orb ro2"></div>
-            <div class="ring-orb ro3"></div>
-            <div class="ring-core">
-              <div class="ring-core-inner">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="rgba(0,230,118,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22V12"/>
-                  <path d="M12 12C12 12 7 9 6 5C5 1 12 2 12 2C12 2 19 1 18 5C17 9 12 12 12 12Z"/>
-                </svg>
-                <div class="ring-core-clock" id="ringCoreClock">--:--</div>
-                <div class="ring-core-label">SISTEMA ONLINE</div>
+      <!-- ─ Coluna direita: lupa 3D ─ -->
+      <div class="home-lupa-col" aria-hidden="true">
+        <div class="lupa-scene">
+          <div class="lupa-halo"></div>
+          <canvas class="lupa-canvas" id="lupaCanvas" width="320" height="320"></canvas>
+          <div class="lupa-3d" id="lupa3d">
+            <div class="lupa-ring-el">
+              <div class="lupa-lens">
+                <div class="lupa-shine-a"></div>
+                <div class="lupa-shine-b"></div>
+                <div class="lupa-grid-lens"></div>
               </div>
             </div>
+            <div class="lupa-handle-el"></div>
           </div>
-
-          <!-- Leituras HUD à direita -->
-          <div class="hud-readout hud-ro-right">
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">CPU</span>
-              <span class="hud-ro-value">OK</span>
-            </div>
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">NET</span>
-              <span class="hud-ro-value">STABLE</span>
-            </div>
-            <div class="hud-ro-item">
-              <span class="hud-ro-label">DB</span>
-              <span class="hud-ro-value">SYNC</span>
-            </div>
-          </div>
-
         </div>
       </div>
 

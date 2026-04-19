@@ -14,6 +14,16 @@
     </div>
     <div class="page-header-right">
       <span class="session-stats" id="sessionStats"></span>
+      <button class="icon-btn" id="emailReportBtn"
+              aria-label="Enviar relatório por e-mail"
+              title="Relatório por e-mail">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </button>
       <button class="icon-btn theme-btn" aria-label="Alternar tema" title="Alternar tema (Ctrl+D)">
         <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -110,6 +120,46 @@
         <div id="content"></div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Email drawer -->
+  <div class="email-overlay" id="emailOverlay"
+       role="dialog" aria-modal="true"
+       aria-label="Enviar relatório por e-mail"
+       style="display:none">
+    <div class="email-drawer">
+      <div class="email-drawer-hdr">
+        <div>
+          <div class="email-drawer-title">Relatório de Inativos</div>
+          <div class="email-drawer-sub">Lista todos os produtos marcados como inativos</div>
+        </div>
+        <button class="icon-btn email-drawer-close-btn"
+                id="emailDrawerClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+               stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="email-drawer-body">
+        <label class="email-field-lbl" for="reportEmailInput">E-mail de destino</label>
+        <input class="email-field-inp" id="reportEmailInput"
+               type="email" placeholder="seu@email.com"
+               autocomplete="email">
+      </div>
+      <div class="email-drawer-footer">
+        <button class="email-send-btn" id="emailSendBtn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Enviar relatório
+        </button>
+      </div>
     </div>
   </div>
 </div>

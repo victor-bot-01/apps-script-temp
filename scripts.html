@@ -5,7 +5,7 @@
 /* ═══════════════════════════════════════════════════
    CONSTANTES
    ═══════════════════════════════════════════════════ */
-var THEME_KEY = 'inv_theme';
+var THEME_KEY = 'eb_theme';
 var REC_KEY   = 'inv_rec_v3';
 var VIEW_KEY  = 'inv_view';
 var SORT_KEY  = 'inv_sort';
@@ -225,6 +225,54 @@ var HOME_PARTICLES = {
 };
 
 /* ═══════════════════════════════════════════════════
+   LUPA CANVAS
+   ═══════════════════════════════════════════════════ */
+var LUPA_CANVAS = {
+  animId: null,
+
+  init: function() {
+    if (LUPA_CANVAS.animId) return;
+    var canvas = qs('#lupaCanvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = 320, H = 320, cx = 160, cy = 160;
+    var pts = [];
+    for (var i = 0; i < 12; i++) {
+      pts.push({
+        angle: (Math.PI * 2 * i) / 12,
+        r: 108 + (i % 3) * 18,
+        spd: (i % 2 === 0 ? 1 : -1) * (0.004 + (i % 4) * 0.002),
+        sz: 1.5 + (i % 3) * 0.7,
+        al: 0.45 + (i % 4) * 0.12
+      });
+    }
+    function getRgb() {
+      return document.documentElement.dataset.theme === 'dark'
+        ? '0,230,118' : '46,125,50';
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      var rgb = getRgb();
+      pts.forEach(function(p) {
+        p.angle += p.spd;
+        var x = cx + Math.cos(p.angle) * p.r;
+        var y = cy + Math.sin(p.angle) * p.r * 0.38;
+        ctx.beginPath();
+        ctx.arc(x, y, p.sz, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + rgb + ',' + p.al + ')';
+        ctx.fill();
+      });
+      LUPA_CANVAS.animId = requestAnimationFrame(draw);
+    }
+    draw();
+  },
+
+  destroy: function() {
+    if (LUPA_CANVAS.animId) { cancelAnimationFrame(LUPA_CANVAS.animId); LUPA_CANVAS.animId = null; }
+  }
+};
+
+/* ═══════════════════════════════════════════════════
    HOME
    ═══════════════════════════════════════════════════ */
 var HOME = {
@@ -244,9 +292,6 @@ var HOME = {
       var clockEl = qs('#heroStatClock');
       if (clockEl) clockEl.textContent = h+':'+m+':'+s;
 
-      var ringClock = qs('#ringCoreClock');
-      if (ringClock) ringClock.textContent = h+':'+m;
-
       var dateEl = qs('#homeDateTime');
       if (dateEl) dateEl.textContent =
         diasFull[now.getDay()]+', '+now.getDate()+' de '+mesesFull[now.getMonth()]+' · '+h+':'+m;
@@ -258,10 +303,12 @@ var HOME = {
   init: function() {
     HOME.startClock();
     HOME_PARTICLES.init();
+    LUPA_CANVAS.init();
   },
   destroy: function() {
     clearInterval(HOME.clockTimer);
     HOME_PARTICLES.destroy();
+    LUPA_CANVAS.destroy();
   }
 };
 
@@ -524,7 +571,8 @@ var INV = {
 
   buildItem: function(row, terms, idx) {
     var el = document.createElement('div');
-    el.className = 'item';
+    var isAtivo = (row.ativo !== false);
+    el.className = 'item' + (isAtivo ? '' : ' is-inactive');
     el.setAttribute('tabindex', '0');
     el.setAttribute('role', 'button');
     el.setAttribute('aria-label', 'Copiar '+(row.produto||''));
@@ -534,7 +582,29 @@ var INV = {
       '<div class="item-info">'+
         '<div class="produto">'+highlight(row.produto||'', terms)+'</div>'+
         '<div class="caixa-badge"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>'+escHtml(row.caixa||'Sem caixa')+'</div>'+
-      '</div>';
+      '</div>'+
+      '<label class="status-tgl" title="Ativo / Inativo">'+
+        '<input type="checkbox" class="status-tgl-input"'+(isAtivo ? ' checked' : '')+'>'+
+        '<span class="status-tgl-track"></span>'+
+        '<span class="status-tgl-thumb"></span>'+
+      '</label>';
+
+    var tgl = el.querySelector('.status-tgl-input');
+    el.querySelector('.status-tgl').addEventListener('click', function(e) { e.stopPropagation(); });
+    tgl.addEventListener('change', function(e) {
+      e.stopPropagation();
+      var novoAtivo = tgl.checked;
+      google.script.run
+        .withSuccessHandler(function() {
+          el.classList.toggle('is-inactive', !novoAtivo);
+          toast(novoAtivo ? 'Produto ativado' : 'Produto inativado', 'ok');
+        })
+        .withFailureHandler(function() {
+          tgl.checked = !novoAtivo;
+          toast('Erro ao alterar status', 'err');
+        })
+        .setProductStatus(row.produto, row.caixa, novoAtivo);
+    });
 
     function copyItem() {
       var text = (row.produto||'') + (row.caixa ? ' | '+row.caixa : '');
@@ -1129,10 +1199,56 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ═══════════════════════════════════════════════════
+   EMAIL DRAWER — INVENTÁRIO
+   ═══════════════════════════════════════════════════ */
+function initEmailDrawer() {
+  var overlay  = qs('#emailOverlay');
+  var openBtn  = qs('#emailReportBtn');
+  var closeBtn = qs('#emailDrawerClose');
+  var sendBtn  = qs('#emailSendBtn');
+  var emailIn  = qs('#reportEmailInput');
+  if (!overlay) return;
+
+  function openDrawer()  { overlay.style.display = 'flex'; emailIn.focus(); }
+  function closeDrawer() { overlay.style.display = 'none'; }
+
+  openBtn.addEventListener('click', openDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeDrawer();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.style.display !== 'none') closeDrawer();
+  });
+
+  sendBtn.addEventListener('click', function() {
+    var email = emailIn.value.trim();
+    if (!email || email.indexOf('@') === -1) {
+      toast('Informe um e-mail válido', 'err');
+      emailIn.focus(); return;
+    }
+    var orig = sendBtn.innerHTML;
+    sendBtn.disabled = true; sendBtn.textContent = 'Enviando...';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        sendBtn.disabled = false; sendBtn.innerHTML = orig;
+        toast(res.mensagem || 'Enviado!', res.sucesso ? 'ok' : 'err');
+        if (res.sucesso) closeDrawer();
+      })
+      .withFailureHandler(function() {
+        sendBtn.disabled = false; sendBtn.innerHTML = orig;
+        toast('Erro ao enviar', 'err');
+      })
+      .enviarRelatorioInativosEmail(email);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════ */
 THEME.apply(THEME.current);
 initScrollTop();
+initEmailDrawer();
 ROUTER.init();
 
 })();

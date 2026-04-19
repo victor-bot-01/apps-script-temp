@@ -23,6 +23,7 @@ function buscarProdutosWeb(termoBusca) {
     .map(function(p) { return p.trim(); })
     .filter(function(p) { return p; });
 
+  var inativos = getInativosSet();
   var resultados = [];
 
   for (var i = START_ROW; i < dados.length; i++) {
@@ -37,12 +38,89 @@ function buscarProdutosWeb(termoBusca) {
       var match = palavras.every(function(p) { return nome.indexOf(p) !== -1; });
 
       if (match) {
-        resultados.push({ produto: produto, caixa: caixa });
+        var key = produto.toString() + '|' + caixa.toString();
+        resultados.push({ produto: produto, caixa: caixa, ativo: inativos.indexOf(key) === -1 });
       }
     }
   }
 
   return resultados;
+}
+
+function getInativosSet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Status_Inativos');
+  if (!sh || sh.getLastRow() < 2) return [];
+  var data = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+  return data
+    .filter(function(r) { return r[0] && r[1]; })
+    .map(function(r) { return r[0].toString() + '|' + r[1].toString(); });
+}
+
+function setProductStatus(produto, caixa, ativo) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Status_Inativos');
+  if (!sh) {
+    sh = ss.insertSheet('Status_Inativos');
+    sh.getRange(1,1,1,2).setValues([['Produto','Caixa']]);
+    sh.getRange(1,1,1,2).setFontWeight('bold');
+  }
+  var lastRow = sh.getLastRow();
+  var existingRow = -1;
+  if (lastRow >= 2) {
+    var data = sh.getRange(2, 1, lastRow - 1, 2).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0].toString() === produto.toString() &&
+          data[i][1].toString() === caixa.toString()) {
+        existingRow = i + 2;
+        break;
+      }
+    }
+  }
+  if (!ativo) {
+    if (existingRow < 0) sh.appendRow([produto, caixa]);
+  } else {
+    if (existingRow > 0) sh.deleteRow(existingRow);
+  }
+  return { sucesso: true, produto: produto, ativo: ativo };
+}
+
+function enviarRelatorioInativosEmail(destinatario) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Status_Inativos');
+  if (!sh || sh.getLastRow() < 2)
+    return { sucesso: true, mensagem: 'Nenhum produto inativo encontrado.' };
+  var data = sh.getRange(2, 1, sh.getLastRow()-1, 2).getValues();
+  var inativos = data.filter(function(r) { return r[0] && r[1]; });
+  if (inativos.length === 0)
+    return { sucesso: true, mensagem: 'Nenhum produto inativo encontrado.' };
+
+  var dataStr = Utilities.formatDate(
+    new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+  var linhas = inativos.map(function(r) {
+    return '<tr>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;">' + r[0] + '</td>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;color:#777;">' + r[1] + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;' +
+    'background:#040d06;color:#ccc;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Produtos Inativos</h2>' +
+    '<p style="color:#666;font-size:13px;margin:0 0 24px;">Essência do Brasil · ' + dataStr + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;">' +
+    '<tr><th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">PRODUTO</th>' +
+    '<th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">CAIXA</th></tr>' +
+    linhas +
+    '</table><p style="margin-top:20px;font-size:12px;color:#555;">Total: <strong style="color:#00ff96;">' +
+    inativos.length + '</strong> produto(s) inativo(s)</p></div>';
+
+  MailApp.sendEmail({
+    to: destinatario,
+    subject: 'Produtos Inativos — Essência do Brasil (' + dataStr + ')',
+    htmlBody: html
+  });
+  return { sucesso: true, mensagem: 'Relatório enviado para ' + destinatario };
 }
 
 function enviarRelatorioInativo() {
