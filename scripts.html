@@ -5,11 +5,13 @@
 /* ═══════════════════════════════════════════════════
    CONSTANTES
    ═══════════════════════════════════════════════════ */
-var THEME_KEY = 'eb_theme';
-var REC_KEY   = 'inv_rec_v3';
-var VIEW_KEY  = 'inv_view';
-var SORT_KEY  = 'inv_sort';
-var MAX_REC   = 8;
+var THEME_KEY        = 'eb_theme';
+var REC_KEY          = 'inv_rec_v3';
+var VIEW_KEY         = 'inv_view';
+var SORT_KEY         = 'inv_sort';
+var MAX_REC          = 8;
+var SAVED_EMAILS_KEY = 'saved_emails';
+var FORCE_MOBILE_KEY = 'force_mobile';
 
 /* ═══════════════════════════════════════════════════
    UTILS
@@ -86,6 +88,35 @@ var THEME = {
 };
 
 /* ═══════════════════════════════════════════════════
+   MOBILE VIEW TOGGLE — Task 1
+   ═══════════════════════════════════════════════════ */
+var MOBILE_VIEW = {
+  active: false,
+
+  init: function() {
+    var forced = localStorage.getItem(FORCE_MOBILE_KEY) === 'true';
+    var isSmall = window.innerWidth < 640;
+    MOBILE_VIEW.active = forced || isSmall;
+    if (MOBILE_VIEW.active) document.body.classList.add('is-mobile');
+
+    var btn = qs('#mobileViewToggleBtn');
+    if (btn) {
+      btn.addEventListener('click', MOBILE_VIEW.toggle);
+      if (MOBILE_VIEW.active) btn.classList.add('active');
+    }
+  },
+
+  toggle: function() {
+    MOBILE_VIEW.active = !MOBILE_VIEW.active;
+    document.body.classList.toggle('is-mobile', MOBILE_VIEW.active);
+    localStorage.setItem(FORCE_MOBILE_KEY, MOBILE_VIEW.active ? 'true' : 'false');
+    var btn = qs('#mobileViewToggleBtn');
+    if (btn) btn.classList.toggle('active', MOBILE_VIEW.active);
+    toast(MOBILE_VIEW.active ? 'Modo mobile ativado' : 'Modo mobile desativado', 'ok');
+  }
+};
+
+/* ═══════════════════════════════════════════════════
    SHORTCUTS OVERLAY
    ═══════════════════════════════════════════════════ */
 var OVERLAY = {
@@ -125,7 +156,6 @@ var ROUTER = {
       newEl.classList.add('active');
     }
 
-    /* Sincroniza mobile nav bar */
     qsa('.mob-nav-item').forEach(function(btn) {
       btn.classList.toggle('active', btn.getAttribute('data-nav') === pageId);
     });
@@ -145,7 +175,7 @@ var ROUTER = {
     var hash = window.location.hash.replace('#', '');
     if (hash.indexOf('q=') === 0) {
       ROUTER.navigate('inventario');
-    } else if (hash === 'inventario' || hash === 'validade') {
+    } else if (hash === 'inventario' || hash === 'validade' || hash === 'sem-etiqueta') {
       ROUTER.navigate(hash);
     } else {
       ROUTER.navigate('home');
@@ -157,10 +187,7 @@ var ROUTER = {
    PARTÍCULAS — canvas da home
    ═══════════════════════════════════════════════════ */
 var HOME_PARTICLES = {
-  canvas:    null,
-  ctx:       null,
-  particles: [],
-  animId:    null,
+  canvas: null, ctx: null, particles: [], animId: null,
 
   init: function() {
     var canvas = qs('#homeParticles');
@@ -174,8 +201,7 @@ var HOME_PARTICLES = {
   },
 
   resize: function() {
-    var c = HOME_PARTICLES.canvas;
-    if (!c) return;
+    var c = HOME_PARTICLES.canvas; if (!c) return;
     c.width  = c.offsetWidth  || window.innerWidth;
     c.height = c.offsetHeight || window.innerHeight;
   },
@@ -186,12 +212,9 @@ var HOME_PARTICLES = {
     var H = HOME_PARTICLES.canvas ? HOME_PARTICLES.canvas.height : 600;
     for (var i = 0; i < 55; i++) {
       HOME_PARTICLES.particles.push({
-        x:  Math.random() * W,
-        y:  Math.random() * H,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
-        r:  0.8 + Math.random() * 2,
-        a:  0.08 + Math.random() * 0.3
+        x:  Math.random() * W, y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+        r:  0.8 + Math.random() * 2, a:  0.08 + Math.random() * 0.3
       });
     }
   },
@@ -201,7 +224,6 @@ var HOME_PARTICLES = {
     if (!c || !ctx) return;
     var W = c.width, H = c.height;
     ctx.clearRect(0, 0, W, H);
-
     HOME_PARTICLES.particles.forEach(function(p) {
       p.x += p.vx; p.y += p.vy;
       if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
@@ -211,7 +233,6 @@ var HOME_PARTICLES = {
       ctx.fillStyle = 'rgba(0,230,118,' + p.a + ')';
       ctx.fill();
     });
-
     HOME_PARTICLES.animId = requestAnimationFrame(HOME_PARTICLES.loop);
   },
 
@@ -225,10 +246,11 @@ var HOME_PARTICLES = {
 };
 
 /* ═══════════════════════════════════════════════════
-   LUPA CANVAS
+   LUPA CANVAS — Task 8: 6 orbital rings, halo pulse
    ═══════════════════════════════════════════════════ */
 var LUPA_CANVAS = {
   animId: null,
+  haloTimer: null,
 
   init: function() {
     if (LUPA_CANVAS.animId) return;
@@ -237,18 +259,22 @@ var LUPA_CANVAS = {
     var ctx = canvas.getContext('2d');
     var W = 320, H = 320, cx = 160, cy = 160;
     var pts = [];
-    for (var i = 0; i < 12; i++) {
-      pts.push({
-        angle: (Math.PI * 2 * i) / 12,
-        r: 108 + (i % 3) * 18,
-        spd: (i % 2 === 0 ? 1 : -1) * (0.004 + (i % 4) * 0.002),
-        sz: 1.5 + (i % 3) * 0.7,
-        al: 0.45 + (i % 4) * 0.12
-      });
+    /* 6 orbital rings, each with 2 dots */
+    var radii = [90, 104, 118, 130, 144, 156];
+    for (var ring = 0; ring < 6; ring++) {
+      var dotsPerRing = 2 + (ring % 3);
+      for (var d = 0; d < dotsPerRing; d++) {
+        pts.push({
+          angle: (Math.PI * 2 * d) / dotsPerRing + ring * 0.52,
+          r: radii[ring],
+          spd: (ring % 2 === 0 ? 1 : -1) * (0.003 + ring * 0.0015),
+          sz: 1.2 + (ring % 3) * 0.6,
+          al: 0.35 + (ring % 4) * 0.12
+        });
+      }
     }
     function getRgb() {
-      return document.documentElement.dataset.theme === 'dark'
-        ? '0,230,118' : '46,125,50';
+      return document.documentElement.dataset.theme === 'dark' ? '0,230,118' : '46,125,50';
     }
     function draw() {
       ctx.clearRect(0, 0, W, H);
@@ -256,7 +282,7 @@ var LUPA_CANVAS = {
       pts.forEach(function(p) {
         p.angle += p.spd;
         var x = cx + Math.cos(p.angle) * p.r;
-        var y = cy + Math.sin(p.angle) * p.r * 0.38;
+        var y = cy + Math.sin(p.angle) * p.r * 0.42;
         ctx.beginPath();
         ctx.arc(x, y, p.sz, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(' + rgb + ',' + p.al + ')';
@@ -265,10 +291,22 @@ var LUPA_CANVAS = {
       LUPA_CANVAS.animId = requestAnimationFrame(draw);
     }
     draw();
+
+    /* Halo glow pulse via JS */
+    var halo = qs('#lupaHalo');
+    if (halo) {
+      var haloPhase = 0;
+      LUPA_CANVAS.haloTimer = setInterval(function() {
+        haloPhase += 0.06;
+        var op = 0.65 + Math.sin(haloPhase) * 0.25;
+        halo.style.opacity = op.toFixed(2);
+      }, 40);
+    }
   },
 
   destroy: function() {
     if (LUPA_CANVAS.animId) { cancelAnimationFrame(LUPA_CANVAS.animId); LUPA_CANVAS.animId = null; }
+    if (LUPA_CANVAS.haloTimer) { clearInterval(LUPA_CANVAS.haloTimer); LUPA_CANVAS.haloTimer = null; }
   }
 };
 
@@ -288,10 +326,8 @@ var HOME = {
       var h = ('0'+now.getHours()).slice(-2);
       var m = ('0'+now.getMinutes()).slice(-2);
       var s = ('0'+now.getSeconds()).slice(-2);
-
       var clockEl = qs('#heroStatClock');
       if (clockEl) clockEl.textContent = h+':'+m+':'+s;
-
       var dateEl = qs('#homeDateTime');
       if (dateEl) dateEl.textContent =
         diasFull[now.getDay()]+', '+now.getDate()+' de '+mesesFull[now.getMonth()]+' · '+h+':'+m;
@@ -345,6 +381,150 @@ function initScrollTop() {
   btn.addEventListener('click', function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+
+/* ═══════════════════════════════════════════════════
+   EMAIL TAGS — Task 3a
+   ═══════════════════════════════════════════════════ */
+function EmailTags(innerId, inputId, maxTags) {
+  var inner = qs('#' + innerId);
+  var input = qs('#' + inputId);
+  var tags  = [];
+  maxTags   = maxTags || 5;
+
+  function renderTags() {
+    if (!inner) return;
+    inner.innerHTML = '';
+    tags.forEach(function(email, i) {
+      var pill = document.createElement('span');
+      pill.className = 'email-tag';
+      var txt = document.createTextNode(email);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'email-tag-x';
+      btn.setAttribute('aria-label', 'Remover ' + email);
+      btn.textContent = '×';
+      (function(idx) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          tags.splice(idx, 1);
+          renderTags();
+        });
+      })(i);
+      pill.appendChild(txt);
+      pill.appendChild(btn);
+      inner.appendChild(pill);
+    });
+  }
+
+  function addEmail(raw) {
+    var email = raw.replace(/,/g,'').trim();
+    if (!email || email.indexOf('@') === -1) return false;
+    if (tags.indexOf(email) !== -1) return false;
+    if (tags.length >= maxTags) { toast('Máximo ' + maxTags + ' destinatários', 'err'); return false; }
+    tags.push(email);
+    renderTags();
+    return true;
+  }
+
+  if (input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        var val = input.value;
+        if (addEmail(val)) input.value = '';
+      }
+      if (e.key === 'Backspace' && !input.value && tags.length) {
+        tags.pop();
+        renderTags();
+      }
+    });
+    input.addEventListener('blur', function() {
+      var val = input.value.trim();
+      if (val && addEmail(val)) input.value = '';
+    });
+  }
+
+  return {
+    getEmails:  function() { return tags.slice(); },
+    addEmail:   addEmail,
+    setEmails:  function(arr) { tags = arr.slice(0, maxTags); renderTags(); },
+    clear:      function() { tags = []; renderTags(); if (input) input.value = ''; },
+    hasEmails:  function() { return tags.length > 0 || (input && input.value.trim().indexOf('@') !== -1); },
+    commitInput: function() {
+      if (input && input.value.trim()) { addEmail(input.value); input.value = ''; }
+    }
+  };
+}
+
+/* ═══════════════════════════════════════════════════
+   SAVED CONTACTS — Task 3b
+   ═══════════════════════════════════════════════════ */
+function SavedContacts(listId, emailTags) {
+  var listEl = qs('#' + listId);
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(SAVED_EMAILS_KEY) || '[]'); } catch(e) { return []; }
+  }
+  function save(arr) {
+    try { localStorage.setItem(SAVED_EMAILS_KEY, JSON.stringify(arr)); } catch(e) {}
+  }
+  function render() {
+    if (!listEl) return;
+    var contacts = load().slice(0, 3);
+    listEl.innerHTML = '';
+    if (!contacts.length) {
+      listEl.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Nenhum contato salvo</span>';
+      return;
+    }
+    contacts.forEach(function(email, i) {
+      var pill = document.createElement('span');
+      pill.className = 'saved-contact-pill';
+
+      var addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'saved-contact-add';
+      addBtn.textContent = email;
+      addBtn.title = 'Adicionar ao campo';
+      (function(e) {
+        addBtn.addEventListener('click', function() { emailTags.addEmail(e); });
+      })(email);
+
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'saved-contact-del';
+      delBtn.textContent = '×';
+      delBtn.title = 'Remover contato';
+      (function(idx) {
+        delBtn.addEventListener('click', function() {
+          var arr = load(); arr.splice(idx, 1); save(arr); render();
+        });
+      })(i);
+
+      pill.appendChild(addBtn);
+      pill.appendChild(delBtn);
+      listEl.appendChild(pill);
+    });
+  }
+
+  render();
+
+  return {
+    render: render,
+    saveCurrent: function() {
+      emailTags.commitInput();
+      var emails = emailTags.getEmails();
+      if (!emails.length) { toast('Nenhum e-mail para salvar', 'err'); return; }
+      var arr = load();
+      emails.forEach(function(e) {
+        if (arr.indexOf(e) === -1) arr.unshift(e);
+      });
+      arr = arr.slice(0, 10);
+      save(arr);
+      render();
+      toast('Contato(s) salvos', 'ok');
+    }
+  };
 }
 
 /* ═══════════════════════════════════════════════════
@@ -618,7 +798,7 @@ var INV = {
         ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
         document.body.appendChild(ta); ta.select();
         try { document.execCommand('copy'); toast('Copiado: '+(row.produto||''),'copy'); }
-        catch(e) { toast('Não foi possível copiar','err'); }
+        catch(e2) { toast('Não foi possível copiar','err'); }
         if (ta.parentNode) ta.parentNode.removeChild(ta);
       }
     }
@@ -929,35 +1109,14 @@ var VAL = {
     VAL._hideVencidos = !VAL._hideVencidos;
     var lbl = qs('#val-toggle-inativo-lbl');
     if (lbl) lbl.textContent = VAL._hideVencidos ? 'Mostrar Vencidos' : 'Ocultar Vencidos';
-
     if (VAL._hideVencidos) {
-      /* animação de saída para cards vencidos */
       qsa('#val-results .val-card.danger').forEach(function(card) {
         card.classList.add('fading-out');
-        card.addEventListener('animationend', function() {
-          card.style.display = 'none';
-        }, { once: true });
+        card.addEventListener('animationend', function() { card.style.display = 'none'; }, { once: true });
       });
     } else {
-      /* reexibe e refaz render completo */
       VAL.applyFilters();
     }
-  },
-
-  enviarRelatorio: function() {
-    var btn = qs('#val-email-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
-
-    google.script.run
-      .withSuccessHandler(function(res) {
-        if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relatório E-mail'; }
-        toast(res && res.msg ? res.msg : 'Relatório enviado!', 'ok');
-      })
-      .withFailureHandler(function(err) {
-        if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Relatório E-mail'; }
-        toast('Erro: ' + (err && err.message ? err.message : 'falha ao enviar'), 'err');
-      })
-      .enviarRelatorioInativo();
   },
 
   applyFilters: function() {
@@ -991,18 +1150,8 @@ var VAL = {
     if (el) el.innerHTML = 'Mostrando <strong>'+VAL.filtered.length+'</strong> de <strong>'+(VAL.data?VAL.data.length:0)+'</strong> produtos';
   },
 
-  getCardClass: function(dias) {
-    if (dias < 0)   return 'danger';
-    if (dias <= 30) return 'warning';
-    if (dias <= 90) return 'caution';
-    return 'ok';
-  },
-  getDiasClass: function(dias) {
-    if (dias < 0)   return 'dias-crit';
-    if (dias <= 30) return 'dias-warn';
-    if (dias <= 90) return 'dias-caution';
-    return 'dias-ok';
-  },
+  getCardClass:   function(dias) { if (dias<0) return 'danger'; if (dias<=30) return 'warning'; if (dias<=90) return 'caution'; return 'ok'; },
+  getDiasClass:   function(dias) { if (dias<0) return 'dias-crit'; if (dias<=30) return 'dias-warn'; if (dias<=90) return 'dias-caution'; return 'dias-ok'; },
   getStatusClass: function(status) {
     var s = (status||'').toLowerCase();
     if (s === 'ok') return 'badge-ok';
@@ -1022,11 +1171,9 @@ var VAL = {
       var card = document.createElement('div');
       card.className = 'val-card ' + VAL.getCardClass(r.diasRestantes);
       card.style.animationDelay = Math.min(i*30,300)+'ms';
-
-      var dias      = r.diasRestantes;
+      var dias = r.diasRestantes;
       var diasClass = VAL.getDiasClass(dias);
       var diasLabel = dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes';
-
       var badges = '';
       if (r.status) badges += '<span class="badge '+VAL.getStatusClass(r.status)+'">'+escHtml(r.status)+'</span>';
       if (r.estoque) {
@@ -1036,10 +1183,8 @@ var VAL = {
       if (r.precisaProduzir && r.precisaProduzir.toUpperCase() !== 'NÃO' && r.precisaProduzir !== '') {
         badges += '<span class="badge badge-produzir">Produzir: '+escHtml(r.precisaProduzir)+'</span>';
       }
-
       var obs     = r.observacao ? '<div class="val-obs">'+escHtml(r.observacao)+'</div>' : '';
       var loteEta = (r.lote ? 'Lote '+escHtml(r.lote) : '')+(r.lote&&r.etiqueta?' · ':'')+(r.etiqueta ? 'Etiq. '+escHtml(r.etiqueta) : '');
-
       card.innerHTML =
         '<div class="val-card-header">'+
           '<div class="val-prod-name">'+escHtml(r.produto)+'</div>'+
@@ -1049,7 +1194,6 @@ var VAL = {
         (loteEta ? '<div class="val-lote-eta">'+loteEta+'</div>' : '')+
         (badges  ? '<div class="val-badges">'+badges+'</div>' : '')+
         obs;
-
       frag.appendChild(card);
     });
     grid.innerHTML = ''; grid.appendChild(frag);
@@ -1084,14 +1228,147 @@ var VAL = {
 
       var toggleBtn = qs('#val-toggle-inativo');
       if (toggleBtn) toggleBtn.addEventListener('click', VAL.toggleVencidos);
-
-      var emailBtn = qs('#val-email-btn');
-      if (emailBtn) emailBtn.addEventListener('click', VAL.enviarRelatorio);
     }
     VAL.loadData(false);
   },
 
   destroy: function() { clearTimeout(VAL.debounceTimer); }
+};
+
+/* ═══════════════════════════════════════════════════
+   PAGE: SEM ETIQUETA — Task 6
+   ═══════════════════════════════════════════════════ */
+var SEM_ETIQUETA = {
+  data:            null,
+  filtered:        [],
+  searchQuery:     '',
+  debounceTimer:   null,
+  _eventsAttached: false,
+
+  loadData: function() {
+    var loadEl = qs('#se-loading'), countEl = qs('#se-count'), content = qs('#se-content');
+    if (loadEl) loadEl.classList.add('visible');
+    if (countEl) countEl.innerHTML = '';
+    if (content) {
+      content.innerHTML = '<div class="skel-list">'+
+        '<div class="skel-item shimmer"></div>'+
+        '<div class="skel-item shimmer"></div>'+
+        '<div class="skel-item shimmer"></div>'+
+        '</div>';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(rows) {
+        if (loadEl) loadEl.classList.remove('visible');
+        SEM_ETIQUETA.data = rows || [];
+        SEM_ETIQUETA.applySearch();
+      })
+      .withFailureHandler(function(err) {
+        if (loadEl) loadEl.classList.remove('visible');
+        if (content) {
+          content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e53935" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="state-title">Erro ao carregar</div><div class="state-desc">'+escHtml(err&&err.message?err.message:'Erro desconhecido')+'</div></div>';
+        }
+        toast('Erro ao carregar dados','err');
+      })
+      .getSemEtiquetaData();
+  },
+
+  applySearch: function() {
+    if (!SEM_ETIQUETA.data) return;
+    var q = SEM_ETIQUETA.searchQuery.toLowerCase().trim();
+    SEM_ETIQUETA.filtered = SEM_ETIQUETA.data.filter(function(r) {
+      if (!q) return true;
+      return r.produto.toLowerCase().indexOf(q) !== -1 || r.caixa.toLowerCase().indexOf(q) !== -1;
+    });
+    SEM_ETIQUETA.renderResults();
+  },
+
+  renderResults: function() {
+    var content  = qs('#se-content');
+    var countEl  = qs('#se-count');
+    if (!content) return;
+
+    if (countEl) {
+      countEl.innerHTML = '<strong>' + SEM_ETIQUETA.filtered.length + '</strong> de ' + SEM_ETIQUETA.data.length + ' item(ns)';
+    }
+
+    if (!SEM_ETIQUETA.filtered.length) {
+      content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ffb300" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+        '<div class="state-title">' + (SEM_ETIQUETA.data.length === 0 ? 'Nenhum produto sem etiqueta' : 'Nenhum resultado') + '</div>' +
+        '<div class="state-desc">' + (SEM_ETIQUETA.data.length === 0 ? 'Todos os produtos estão com etiqueta disponível.' : 'Tente outro termo de busca.') + '</div></div>';
+      return;
+    }
+
+    var list = document.createElement('div');
+    list.className = 'items-list view-list';
+    var frag = document.createDocumentFragment();
+
+    SEM_ETIQUETA.filtered.forEach(function(row, i) {
+      var el = document.createElement('div');
+      el.className = 'item';
+      el.style.animationDelay = Math.min(i * 40, 400) + 'ms';
+      el.innerHTML =
+        '<div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>'+
+        '<div class="item-info">'+
+          '<div class="produto">'+escHtml(row.produto)+'</div>'+
+          '<div class="caixa-badge"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>'+escHtml(row.caixa||'Sem caixa')+'</div>'+
+          (row.qtdOriginal ? '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">Qtd original: '+escHtml(String(row.qtdOriginal))+'</div>' : '')+
+        '</div>'+
+        '<button class="small-btn se-reativar-btn" style="flex-shrink:0">Reativar</button>';
+
+      var btn = el.querySelector('.se-reativar-btn');
+      (function(r) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          btn.disabled = true; btn.textContent = '…';
+          google.script.run
+            .withSuccessHandler(function() {
+              toast('Produto reativado: ' + r.produto, 'ok');
+              SEM_ETIQUETA.loadData();
+            })
+            .withFailureHandler(function() {
+              btn.disabled = false; btn.textContent = 'Reativar';
+              toast('Erro ao reativar','err');
+            })
+            .setProductStatus(r.produto, r.caixa, true);
+        });
+      })(row);
+
+      frag.appendChild(el);
+    });
+
+    list.appendChild(frag);
+    content.innerHTML = '';
+    content.appendChild(list);
+  },
+
+  init: function() {
+    if (!SEM_ETIQUETA._eventsAttached) {
+      SEM_ETIQUETA._eventsAttached = true;
+
+      var searchEl = qs('#se-search');
+      if (searchEl) searchEl.addEventListener('input', function() {
+        clearTimeout(SEM_ETIQUETA.debounceTimer);
+        SEM_ETIQUETA.debounceTimer = setTimeout(function() {
+          SEM_ETIQUETA.searchQuery = searchEl.value;
+          SEM_ETIQUETA.applySearch();
+        }, 280);
+      });
+
+      var refreshBtn = qs('#se-refresh');
+      if (refreshBtn) refreshBtn.addEventListener('click', function() {
+        SEM_ETIQUETA.data = null;
+        SEM_ETIQUETA.searchQuery = '';
+        var searchEl2 = qs('#se-search');
+        if (searchEl2) searchEl2.value = '';
+        SEM_ETIQUETA.loadData();
+        toast('Atualizando…','ok');
+      });
+    }
+    SEM_ETIQUETA.loadData();
+  },
+
+  destroy: function() { clearTimeout(SEM_ETIQUETA.debounceTimer); }
 };
 
 /* ═══════════════════════════════════════════════════
@@ -1112,6 +1389,11 @@ var PAGES = {
     label: 'Validade',
     init:    function() { VAL.init(); },
     destroy: function() { VAL.destroy(); }
+  },
+  'sem-etiqueta': {
+    label: 'Sem Etiqueta',
+    init:    function() { SEM_ETIQUETA.init(); },
+    destroy: function() { SEM_ETIQUETA.destroy(); }
   }
 };
 
@@ -1127,10 +1409,11 @@ qsa('.nav-card[data-nav]').forEach(function(card) {
 
 var backInv = qs('#backFromInventario');
 var backVal = qs('#backFromValidade');
+var backSE  = qs('#backFromSemEtiqueta');
 if (backInv) backInv.addEventListener('click', function(){ ROUTER.navigate('home'); });
 if (backVal) backVal.addEventListener('click', function(){ ROUTER.navigate('home'); });
+if (backSE)  backSE.addEventListener('click',  function(){ ROUTER.navigate('home'); });
 
-/* Mobile bottom nav — clique em cada item */
 qsa('.mob-nav-item').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var dest = btn.getAttribute('data-nav');
@@ -1166,6 +1449,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'h' || e.key === 'H') { ROUTER.navigate('home'); return; }
     if (e.key === '1') { ROUTER.navigate('inventario'); return; }
     if (e.key === '2') { ROUTER.navigate('validade'); return; }
+    if (e.key === '3') { ROUTER.navigate('sem-etiqueta'); return; }
     if (e.key === '?') { e.preventDefault(); OVERLAY.open(); return; }
     if (e.key === '/') {
       e.preventDefault();
@@ -1183,6 +1467,10 @@ document.addEventListener('keydown', function(e) {
 
   if (e.key === 'Escape') {
     if (OVERLAY.isOpen()) { OVERLAY.close(); return; }
+    /* close any open email overlay */
+    var invOv = qs('#emailOverlay'), valOv = qs('#valEmailOverlay');
+    if (invOv && invOv.style.display !== 'none') { invOv.style.display = 'none'; return; }
+    if (valOv && valOv.style.display !== 'none') { valOv.style.display = 'none'; return; }
     if (ROUTER.current === 'inventario') {
       var sbEsc = qs('#searchBox');
       if (sbEsc && sbEsc.value) {
@@ -1199,47 +1487,182 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ═══════════════════════════════════════════════════
-   EMAIL DRAWER — INVENTÁRIO
+   EMAIL DRAWER — INVENTÁRIO (Tasks 2, 3)
    ═══════════════════════════════════════════════════ */
 function initEmailDrawer() {
-  var overlay  = qs('#emailOverlay');
-  var openBtn  = qs('#emailReportBtn');
-  var closeBtn = qs('#emailDrawerClose');
-  var sendBtn  = qs('#emailSendBtn');
-  var emailIn  = qs('#reportEmailInput');
+  var overlay      = qs('#emailOverlay');
+  var openBtn      = qs('#emailReportBtn');
+  var closeBtn     = qs('#emailDrawerClose');
+  var closePrevBtn = qs('#emailDrawerClosePreview');
+  var sendBtn      = qs('#emailSendBtn');
+  var confirmBtn   = qs('#invConfirmBtn');
+  var backBtn      = qs('#invBackBtn');
+  var composeStep  = qs('#invComposeStep');
+  var previewStep  = qs('#invPreviewStep');
+  var previewBox   = qs('#invPreviewBox');
+  var saveBtn      = qs('#invSaveCurrentBtn');
+
   if (!overlay) return;
 
-  function openDrawer()  { overlay.style.display = 'flex'; emailIn.focus(); }
-  function closeDrawer() { overlay.style.display = 'none'; }
+  var emailTags = EmailTags('invEmailTagsInner', 'reportEmailInput', 5);
+  var savedContacts = SavedContacts('invSavedList', emailTags);
 
-  openBtn.addEventListener('click', openDrawer);
-  closeBtn.addEventListener('click', closeDrawer);
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) closeDrawer();
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && overlay.style.display !== 'none') closeDrawer();
-  });
+  function openDrawer() {
+    overlay.style.display = 'flex';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+    setTimeout(function() {
+      var inp = qs('#reportEmailInput');
+      if (inp) inp.focus();
+    }, 80);
+  }
 
-  sendBtn.addEventListener('click', function() {
-    var email = emailIn.value.trim();
-    if (!email || email.indexOf('@') === -1) {
-      toast('Informe um e-mail válido', 'err');
-      emailIn.focus(); return;
-    }
-    var orig = sendBtn.innerHTML;
-    sendBtn.disabled = true; sendBtn.textContent = 'Enviando...';
+  function closeDrawer() {
+    overlay.style.display = 'none';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+  }
+
+  function showPreview() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+
+    var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+    var subject = 'Essência do Brasil – Para Produção dos Rótulos';
+    previewBox.innerHTML =
+      '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+      '<div class="email-preview-subject">'+escHtml(subject)+' · &lt;N&gt; produto(s) inativo(s) · &lt;data&gt;</div>'+
+      '<div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Todos os produtos atualmente marcados como inativos serão listados no relatório.</div>';
+
+    composeStep.style.display = 'none';
+    previewStep.style.display = '';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDrawer(); });
+  if (backBtn) backBtn.addEventListener('click', function() {
+    previewStep.style.display = 'none';
+    composeStep.style.display = '';
+  });
+  if (sendBtn) sendBtn.addEventListener('click', showPreview);
+  if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
+
+  if (confirmBtn) confirmBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Nenhum e-mail válido', 'err'); return; }
+    var orig = confirmBtn.innerHTML;
+    confirmBtn.disabled = true; confirmBtn.textContent = 'Enviando…';
+    var destinatario = emails.join(',');
     google.script.run
       .withSuccessHandler(function(res) {
-        sendBtn.disabled = false; sendBtn.innerHTML = orig;
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
         toast(res.mensagem || 'Enviado!', res.sucesso ? 'ok' : 'err');
-        if (res.sucesso) closeDrawer();
+        if (res.sucesso) { closeDrawer(); emailTags.clear(); }
       })
       .withFailureHandler(function() {
-        sendBtn.disabled = false; sendBtn.innerHTML = orig;
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
         toast('Erro ao enviar', 'err');
       })
-      .enviarRelatorioInativosEmail(email);
+      .enviarRelatorioInativosEmail(destinatario);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   EMAIL DRAWER — VALIDADE (Tasks 2, 3)
+   ═══════════════════════════════════════════════════ */
+function initValEmailDrawer() {
+  var overlay      = qs('#valEmailOverlay');
+  var openBtn      = qs('#valEmailReportBtn');
+  var closeBtn     = qs('#valEmailDrawerClose');
+  var closePrevBtn = qs('#valEmailDrawerClosePreview');
+  var sendBtn      = qs('#valEmailSendBtn');
+  var confirmBtn   = qs('#valConfirmBtn');
+  var backBtn      = qs('#valBackBtn');
+  var composeStep  = qs('#valComposeStep');
+  var previewStep  = qs('#valPreviewStep');
+  var previewBox   = qs('#valPreviewBox');
+  var saveBtn      = qs('#valSaveCurrentBtn');
+
+  if (!overlay) return;
+
+  var emailTags     = EmailTags('valEmailTagsInner', 'valReportEmailInput', 5);
+  var savedContacts = SavedContacts('valSavedList', emailTags);
+
+  function openDrawer() {
+    overlay.style.display = 'flex';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+    setTimeout(function() {
+      var inp = qs('#valReportEmailInput');
+      if (inp) inp.focus();
+    }, 80);
+  }
+
+  function closeDrawer() {
+    overlay.style.display = 'none';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+  }
+
+  function showPreview() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+
+    var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+    var subject = 'Essência do Brasil – Relatório de Validade';
+
+    var vencidos = 0, criticos = 0;
+    if (VAL.data) {
+      VAL.data.forEach(function(r) {
+        if (r.diasRestantes < 0)        vencidos++;
+        else if (r.diasRestantes <= 30) criticos++;
+      });
+    }
+    var preview = vencidos + ' vencido(s) + ' + criticos + ' crítico(s) serão listados no relatório.';
+
+    previewBox.innerHTML =
+      '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+      '<div class="email-preview-subject">'+escHtml(subject)+' · '+vencidos+' vencido(s) · '+criticos+' crítico(s) · &lt;data&gt;</div>'+
+      '<div style="margin-top:12px;font-size:13px;color:var(--text-muted)">'+escHtml(preview)+'</div>';
+
+    composeStep.style.display = 'none';
+    previewStep.style.display = '';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDrawer(); });
+  if (backBtn) backBtn.addEventListener('click', function() {
+    previewStep.style.display = 'none';
+    composeStep.style.display = '';
+  });
+  if (sendBtn) sendBtn.addEventListener('click', showPreview);
+  if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
+
+  if (confirmBtn) confirmBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Nenhum e-mail válido', 'err'); return; }
+    var orig = confirmBtn.innerHTML;
+    confirmBtn.disabled = true; confirmBtn.textContent = 'Enviando…';
+    var destinatario = emails.join(',');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast(res.mensagem || 'Enviado!', res.sucesso ? 'ok' : 'err');
+        if (res.sucesso) { closeDrawer(); emailTags.clear(); }
+      })
+      .withFailureHandler(function() {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast('Erro ao enviar', 'err');
+      })
+      .enviarRelatorioValidadeEmail(destinatario);
   });
 }
 
@@ -1247,8 +1670,10 @@ function initEmailDrawer() {
    INIT
    ═══════════════════════════════════════════════════ */
 THEME.apply(THEME.current);
+MOBILE_VIEW.init();
 initScrollTop();
 initEmailDrawer();
+initValEmailDrawer();
 ROUTER.init();
 
 })();

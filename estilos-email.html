@@ -1,0 +1,179 @@
+<style>
+/* ═══════════════════════════════════════════════════
+   EMAIL OVERLAY / DRAWER — centered modal (Task 3c)
+   ═══════════════════════════════════════════════════ */
+.email-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 600; display: flex; align-items: center;
+  justify-content: center; animation: fade-in 0.2s ease;
+  padding: 16px;
+}
+@keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+
+.email-drawer {
+  width: 100%; max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  animation: drawer-scale-in 0.26s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+@keyframes drawer-scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.email-drawer-hdr {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 20px 20px 14px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.email-drawer-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.email-drawer-sub   { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.email-drawer-body  { padding: 18px 20px 8px; }
+
+.email-field-lbl {
+  display: block; font-size: 12px; font-weight: 500;
+  color: var(--text-muted); margin-bottom: 7px;
+}
+.email-field-inp {
+  width: 100%; padding: 12px 14px; font-size: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg2, var(--item-bg)); color: var(--text-primary); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--green, var(--green-700));
+  font-family: var(--font);
+}
+.email-field-inp:focus {
+  border-color: var(--green, var(--green-700));
+  box-shadow: 0 0 0 3px var(--green-glow);
+}
+
+/* ── Email tag input (Task 3a) ───────────────────── */
+.email-tags-wrap {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  border: 1.5px solid var(--input-border); border-radius: 8px;
+  padding: 6px 8px; min-height: 46px;
+  background: var(--input-bg); cursor: text;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.email-tags-wrap:focus-within {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+  background: var(--surface-solid);
+}
+.email-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(67,160,71,0.12); color: var(--green-700);
+  border: 1px solid rgba(67,160,71,0.25); border-radius: 6px;
+  padding: 2px 4px 2px 8px; font-size: 12.5px; font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+}
+[data-theme="dark"] .email-tag {
+  background: rgba(0,230,118,0.1); color: var(--green-400);
+  border-color: rgba(0,230,118,0.2);
+}
+.email-tag-x {
+  background: none; border: none; cursor: pointer; color: inherit;
+  opacity: 0.6; display: flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 4px; padding: 0; font-size: 14px; line-height: 1;
+}
+.email-tag-x:hover { opacity: 1; background: rgba(0,0,0,0.08); }
+.email-tags-input {
+  flex: 1; border: none; outline: none; min-width: 140px;
+  font-size: 14px; background: transparent; color: var(--text-primary);
+  font-family: var(--font); padding: 2px 0;
+}
+.email-tags-input::placeholder { color: var(--text-muted); }
+
+/* ── Saved contacts section (Task 3b) ───────────── */
+.saved-contacts-section { margin-top: 14px; }
+.saved-contacts-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.saved-contacts-lbl {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.saved-contacts-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 10px; }
+.saved-contact-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--chip-bg); border: 1px solid var(--chip-border);
+  border-radius: 16px; padding: 3px 4px 3px 9px;
+  font-size: 11.5px; color: var(--green-700); cursor: default;
+}
+[data-theme="dark"] .saved-contact-pill { color: var(--green-400); }
+.saved-contact-add {
+  background: none; border: none; cursor: pointer; font-size: 11px;
+  color: var(--text-muted); padding: 2px 5px; border-radius: 4px;
+  transition: background 0.15s, color 0.15s; line-height: 1;
+}
+.saved-contact-add:hover { background: var(--green-100); color: var(--green-700); }
+.saved-contact-del {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 0 4px; font-size: 13px; line-height: 1; border-radius: 4px;
+  transition: color 0.15s;
+}
+.saved-contact-del:hover { color: var(--danger); }
+.save-current-link {
+  margin-top: 10px; background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--text-muted); padding: 0;
+  text-decoration: underline; font-family: var(--font);
+  transition: color 0.15s; display: block;
+}
+.save-current-link:hover { color: var(--green-700); }
+
+/* ── Email preview step (Task 3d) ────────────────── */
+.email-preview-box {
+  background: var(--item-bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; font-size: 13px;
+  color: var(--text-secondary); line-height: 1.7;
+}
+.email-preview-box strong { color: var(--text-primary); }
+.email-preview-to {
+  font-size: 11px; color: var(--text-muted);
+  word-break: break-all; margin-top: 6px;
+}
+.email-preview-subject {
+  font-size: 11.5px; font-style: italic; color: var(--text-muted);
+  margin-top: 4px; padding: 6px 10px;
+  background: var(--surface); border-radius: 6px;
+  border: 1px solid var(--divider);
+}
+
+/* ── Drawer footer ───────────────────────────────── */
+.email-drawer-footer {
+  padding: 14px 20px 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.email-send-btn, .email-confirm-btn {
+  width: 100%; padding: 13px;
+  background: var(--green, var(--green-700)); color: #fff; border: none;
+  border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.email-send-btn:hover, .email-confirm-btn:hover  { opacity: 0.88; }
+.email-send-btn:active, .email-confirm-btn:active { transform: scale(0.98); }
+.email-send-btn:disabled, .email-confirm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.email-back-btn {
+  width: 100%; padding: 11px;
+  background: var(--toggle-bg); color: var(--text-secondary); border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s, color 0.15s; font-family: var(--font);
+}
+.email-back-btn:hover { background: var(--chip-bg); color: var(--text-primary); }
+
+/* ── Mobile adjustments for email modal ──────────── */
+@media (max-width: 768px) {
+  .email-overlay { padding: 12px; align-items: flex-end; }
+  .email-drawer { border-radius: 16px 16px 16px 16px; }
+  .email-drawer-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 480px) {
+  .email-overlay { padding: 0; align-items: flex-end; }
+  .email-drawer { border-radius: 16px 16px 0 0; max-height: 85vh; }
+}
+</style>

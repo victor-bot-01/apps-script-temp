@@ -2,16 +2,24 @@
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <base target="_top">
   <title>Essência do Brasil</title>
-  <?!= include('estilos') ?>
+  <?!= include('estilos-tokens') ?>
+  <?!= include('estilos-base') ?>
+  <?!= include('estilos-components') ?>
+  <?!= include('estilos-home') ?>
+  <?!= include('estilos-inventario') ?>
+  <?!= include('estilos-validade') ?>
+  <?!= include('estilos-layout') ?>
+  <?!= include('estilos-email') ?>
 </head>
 <body>
   <div id="app">
     <?!= include('home') ?>
     <?!= include('page-inventario') ?>
     <?!= include('page-validade') ?>
+    <?!= include('page-sem-etiqueta') ?>
   </div>
 
   <div class="toast-wrap" id="toastWrap"></div>
@@ -37,6 +45,7 @@
       <div class="sh-row"><span>Ir para Home</span><span><span class="kbd">H</span></span></div>
       <div class="sh-row"><span>Ir para Inventário</span><span><span class="kbd">1</span></span></div>
       <div class="sh-row"><span>Ir para Validade</span><span><span class="kbd">2</span></span></div>
+      <div class="sh-row"><span>Ir para Sem Etiqueta</span><span><span class="kbd">3</span></span></div>
       <div class="sh-row"><span>Focar busca</span><span><span class="kbd">/</span></span></div>
       <div class="sh-row"><span>Aceitar sugestão</span><span><span class="kbd">Tab</span></span></div>
       <div class="sh-row"><span>Navegar resultados</span><span><span class="kbd">↑</span> <span class="kbd">↓</span></span></div>
@@ -72,6 +81,14 @@
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
       <span>Validade</span>
+    </button>
+    <button class="mob-nav-item" data-nav="sem-etiqueta" aria-label="Sem Etiqueta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
+      <span>S/ Etiq.</span>
     </button>
   </nav>
 

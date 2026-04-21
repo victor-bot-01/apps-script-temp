@@ -53,6 +53,12 @@
     </div>
 
     <div class="home-header-actions">
+      <button class="icon-btn" id="mobileViewToggleBtn" aria-label="Alternar visualização mobile" title="Modo mobile">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="7" y="2" width="10" height="20" rx="2" ry="2"/>
+          <line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+      </button>
       <button class="icon-btn theme-btn" id="homeThemeBtn" aria-label="Alternar tema" title="Alternar tema (Ctrl+D)">
         <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -180,6 +186,32 @@
             <div class="nav-card-desc">Controle de lotes, linha de produção e rastreabilidade.</div>
           </div>
 
+          <!-- Módulo 05: Sem Etiqueta -->
+          <div class="nav-card" data-nav="sem-etiqueta" role="button" tabindex="0" aria-label="Abrir módulo Sem Etiqueta">
+            <div class="nav-card-scan" aria-hidden="true"></div>
+            <div class="nav-card-status online" aria-label="Status: online">
+              <div class="nav-card-status-dot"></div>
+              ONLINE
+            </div>
+            <div class="nav-card-num">MOD_05</div>
+            <div class="nav-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </div>
+            <div class="nav-card-label">Módulo 05</div>
+            <div class="nav-card-title">Sem Etiqueta</div>
+            <div class="nav-card-desc">Produtos com indisponibilidade de etiqueta registrada.</div>
+            <div class="nav-card-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </div>
+          </div>
+
           <!-- Módulo 04: Em breve -->
           <div class="nav-card disabled" aria-disabled="true" aria-label="Módulo Pedidos — em breve">
             <div class="nav-card-scan" aria-hidden="true"></div>
@@ -206,9 +238,19 @@
       <!-- ─ Coluna direita: lupa 3D ─ -->
       <div class="home-lupa-col" aria-hidden="true">
         <div class="lupa-scene">
-          <div class="lupa-halo"></div>
+          <div class="lupa-halo" id="lupaHalo"></div>
           <canvas class="lupa-canvas" id="lupaCanvas" width="320" height="320"></canvas>
           <div class="lupa-3d" id="lupa3d">
+            <div class="lupa-rings" aria-hidden="true">
+              <div class="lupa-ring-orbit lupa-ring-orbit--1"></div>
+              <div class="lupa-ring-orbit lupa-ring-orbit--2"></div>
+            </div>
+            <div class="lupa-scan-line" aria-hidden="true"></div>
+            <div class="lupa-data-points" aria-hidden="true">
+              <span class="lupa-dp lupa-dp--1">12ms</span>
+              <span class="lupa-dp lupa-dp--2">OK</span>
+              <span class="lupa-dp lupa-dp--3">v3.1</span>
+            </div>
             <div class="lupa-ring-el">
               <div class="lupa-lens">
                 <div class="lupa-shine-a"></div>

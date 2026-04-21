@@ -13,6 +13,16 @@
       <div class="page-subtitle">Controle de prazos e vencimentos</div>
     </div>
     <div class="page-header-right">
+      <button class="icon-btn" id="valEmailReportBtn"
+              aria-label="Enviar relatório de validade por e-mail"
+              title="Relatório de validade por e-mail">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </button>
       <button class="icon-btn theme-btn" aria-label="Alternar tema" title="Alternar tema (Ctrl+D)">
         <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -82,13 +92,6 @@
         </svg>
         <span id="val-toggle-inativo-lbl">Ocultar Vencidos</span>
       </button>
-      <button class="small-btn" id="val-email-btn" title="Enviar relatório de produtos críticos por e-mail">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-        Relatório E-mail
-      </button>
     </div>
 
     <div class="val-count-bar" id="val-count-bar"></div>
@@ -104,4 +107,91 @@
     <div id="val-results" class="val-grid"></div>
 
   </div>
+
+  <!-- Email drawer (multi-recipient + saved contacts + preview) -->
+  <div class="email-overlay" id="valEmailOverlay"
+       role="dialog" aria-modal="true"
+       aria-label="Enviar relatório de validade por e-mail"
+       style="display:none">
+    <div class="email-drawer">
+
+      <!-- STEP: compose -->
+      <div id="valComposeStep">
+        <div class="email-drawer-hdr">
+          <div>
+            <div class="email-drawer-title">Relatório de Validade</div>
+            <div class="email-drawer-sub">Envia produtos críticos e vencidos por e-mail</div>
+          </div>
+          <button class="icon-btn email-drawer-close-btn"
+                  id="valEmailDrawerClose" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="email-drawer-body">
+          <label class="email-field-lbl">E-mails de destino (até 5)</label>
+          <div class="email-tags-wrap" id="valEmailTagsWrap">
+            <div class="email-tags-inner" id="valEmailTagsInner"></div>
+            <input class="email-tags-input" id="valReportEmailInput" type="email" placeholder="email@exemplo.com">
+          </div>
+          <div class="saved-contacts-section" id="valSavedSection">
+            <div class="saved-contacts-hdr">
+              <span class="saved-contacts-lbl">Contatos salvos</span>
+            </div>
+            <div class="saved-contacts-list" id="valSavedList"></div>
+            <button class="save-current-link" id="valSaveCurrentBtn" type="button">Salvar atual</button>
+          </div>
+        </div>
+        <div class="email-drawer-footer">
+          <button class="email-send-btn" id="valEmailSendBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Enviar relatório
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP: preview -->
+      <div id="valPreviewStep" style="display:none">
+        <div class="email-drawer-hdr">
+          <div>
+            <div class="email-drawer-title">Confirmar Envio</div>
+            <div class="email-drawer-sub">Revise antes de enviar</div>
+          </div>
+          <button class="icon-btn email-drawer-close-btn"
+                  id="valEmailDrawerClosePreview" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="email-drawer-body">
+          <div class="email-preview-box" id="valPreviewBox"></div>
+        </div>
+        <div class="email-drawer-footer">
+          <button class="email-confirm-btn" id="valConfirmBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Confirmar envio
+          </button>
+          <button class="email-back-btn" id="valBackBtn">Voltar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>

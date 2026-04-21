@@ -1,0 +1,66 @@
+<style>
+/* ── RESET ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--green-400); }
+* { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) transparent; }
+
+/* ── CORPO E LAYOUT GLOBAL ───────────────────────── */
+html, body {
+  margin: 0; padding: 0; min-height: 100vh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,83,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,83,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+[data-theme="dark"] body::before {
+  background-image:
+    linear-gradient(rgba(0,230,118,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,230,118,0.04) 1px, transparent 1px);
+}
+
+#app { position: relative; z-index: 1; min-height: 100vh; }
+
+/* ── PÁGINAS — show/hide com animação ────────────── */
+.page { display: none; min-height: 100vh; }
+.page.active { display: flex; flex-direction: column; animation: pageIn 0.3s ease both; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── IS-MOBILE overrides (Task 1) ────────────────── */
+body.is-mobile .page-content { padding: 16px 12px 80px; }
+body.is-mobile .search-area  { padding: 14px 12px; }
+body.is-mobile .main-card    { border-radius: 12px; }
+body.is-mobile .item         { padding: 10px 12px; }
+body.is-mobile .nav-card     { padding: 14px 12px 46px; }
+body.is-mobile .home-hero    { padding: 20px 16px 80px; }
+body.is-mobile .home-header  { padding: 10px 16px; }
+body.is-mobile .filtros-bar  { flex-direction: column; }
+body.is-mobile .summary-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+body.is-mobile .summary-value { font-size: 18px; }
+
+/* ── PRINT ───────────────────────────────────────── */
+@media print {
+  .home-scan, .hud-corner, .home-particles,
+  .scroll-top, .toast-wrap, .ov-bg, #confetti,
+  .mob-nav-bar, .page-header-right, .back-btn, .home-header-actions { display: none !important; }
+  body::before { display: none; }
+  .main-card { box-shadow: none; border: 1px solid #ddd; }
+  .home-page { background: #fff !important; color: #000 !important; }
+}
+</style>
