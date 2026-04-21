@@ -40,7 +40,8 @@ function buscarProdutosWeb(termoBusca) {
 
       if (match) {
         var key = produto.toString() + '|' + caixa.toString();
-        resultados.push({ produto: produto, caixa: caixa, ativo: inativos.indexOf(key) === -1 });
+        if (inativos.indexOf(key) !== -1) continue;
+        resultados.push({ produto: produto, caixa: caixa, ativo: true });
       }
     }
   }

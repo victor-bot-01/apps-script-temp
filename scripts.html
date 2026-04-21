@@ -778,6 +778,12 @@ var INV = {
         .withSuccessHandler(function() {
           el.classList.toggle('is-inactive', !novoAtivo);
           toast(novoAtivo ? 'Produto ativado' : 'Marcado como indisponível', 'ok');
+          var keysToRemove = [];
+          for (var k = 0; k < sessionStorage.length; k++) {
+            var key = sessionStorage.key(k);
+            if (key && key.indexOf('inv_cache_') === 0) keysToRemove.push(key);
+          }
+          keysToRemove.forEach(function(k) { sessionStorage.removeItem(k); });
         })
         .withFailureHandler(function() {
           tgl.checked = !novoAtivo;
