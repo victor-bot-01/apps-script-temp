@@ -566,4 +566,12 @@
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 1; }
 }
+
+@media (max-width: 640px) {
+  .home-nav-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .nav-card { padding: 16px 14px; min-height: 130px; }
+  .nav-card-icon svg { width: 28px; height: 28px; }
+  .nav-card-title { font-size: 15px; }
+  .nav-card-desc { display: none; }
+}
 </style>

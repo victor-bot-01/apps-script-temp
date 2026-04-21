@@ -777,7 +777,7 @@ var INV = {
       google.script.run
         .withSuccessHandler(function() {
           el.classList.toggle('is-inactive', !novoAtivo);
-          toast(novoAtivo ? 'Produto ativado' : 'Produto inativado', 'ok');
+          toast(novoAtivo ? 'Produto ativado' : 'Marcado como indisponível', 'ok');
         })
         .withFailureHandler(function() {
           tgl.checked = !novoAtivo;
@@ -1257,20 +1257,27 @@ var SEM_ETIQUETA = {
         '</div>';
     }
 
+    function fetchData() {
+      google.script.run
+        .withSuccessHandler(function(rows) {
+          if (loadEl) loadEl.classList.remove('visible');
+          SEM_ETIQUETA.data = rows || [];
+          SEM_ETIQUETA.applySearch();
+        })
+        .withFailureHandler(function(err) {
+          if (loadEl) loadEl.classList.remove('visible');
+          if (content) {
+            content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e53935" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="state-title">Erro ao carregar</div><div class="state-desc">'+escHtml(err&&err.message?err.message:'Erro desconhecido')+'</div></div>';
+          }
+          toast('Erro ao carregar dados','err');
+        })
+        .getSemEtiquetaData();
+    }
+
     google.script.run
-      .withSuccessHandler(function(rows) {
-        if (loadEl) loadEl.classList.remove('visible');
-        SEM_ETIQUETA.data = rows || [];
-        SEM_ETIQUETA.applySearch();
-      })
-      .withFailureHandler(function(err) {
-        if (loadEl) loadEl.classList.remove('visible');
-        if (content) {
-          content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e53935" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="state-title">Erro ao carregar</div><div class="state-desc">'+escHtml(err&&err.message?err.message:'Erro desconhecido')+'</div></div>';
-        }
-        toast('Erro ao carregar dados','err');
-      })
-      .getSemEtiquetaData();
+      .withSuccessHandler(fetchData)
+      .withFailureHandler(fetchData)
+      .syncInativosFromInventario();
   },
 
   applySearch: function() {
@@ -1391,7 +1398,7 @@ var PAGES = {
     destroy: function() { VAL.destroy(); }
   },
   'sem-etiqueta': {
-    label: 'Sem Etiqueta',
+    label: 'Para Producao',
     init:    function() { SEM_ETIQUETA.init(); },
     destroy: function() { SEM_ETIQUETA.destroy(); }
   }
@@ -1523,22 +1530,6 @@ function initEmailDrawer() {
     previewStep.style.display = 'none';
   }
 
-  function showPreview() {
-    emailTags.commitInput();
-    var emails = emailTags.getEmails();
-    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
-
-    var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
-    var subject = 'Essência do Brasil – Para Produção dos Rótulos';
-    previewBox.innerHTML =
-      '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
-      '<div class="email-preview-subject">'+escHtml(subject)+' · &lt;N&gt; produto(s) inativo(s) · &lt;data&gt;</div>'+
-      '<div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Todos os produtos atualmente marcados como inativos serão listados no relatório.</div>';
-
-    composeStep.style.display = 'none';
-    previewStep.style.display = '';
-  }
-
   if (openBtn) openBtn.addEventListener('click', openDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
   if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
@@ -1547,7 +1538,47 @@ function initEmailDrawer() {
     previewStep.style.display = 'none';
     composeStep.style.display = '';
   });
-  if (sendBtn) sendBtn.addEventListener('click', showPreview);
+  if (sendBtn) sendBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+
+    var origHtml = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Gerando preview...';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        if (!res || !res.sucesso) { toast('Erro ao gerar preview', 'err'); return; }
+
+        var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+        previewBox.innerHTML =
+          '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+          '<div class="email-preview-subject">'+escHtml(res.assunto)+'</div>'+
+          '<div id="invPreviewContent" style="margin-top:12px"></div>';
+
+        var contentDiv = qs('#invPreviewContent');
+        if (res.html && res.html.length) {
+          var iframe = document.createElement('iframe');
+          iframe.className = 'email-preview-iframe';
+          iframe.srcdoc = res.html;
+          contentDiv.appendChild(iframe);
+        } else {
+          contentDiv.innerHTML = '<div style="font-size:13px;color:var(--text-muted)">Nenhum produto indisponível no momento.</div>';
+        }
+
+        composeStep.style.display = 'none';
+        previewStep.style.display = '';
+      })
+      .withFailureHandler(function(err) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        toast('Erro ao gerar preview: '+(err&&err.message?err.message:'falha'), 'err');
+      })
+      .gerarPreviewEmailIndisponiveis(emails);
+  });
   if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
 
   if (confirmBtn) confirmBtn.addEventListener('click', function() {
@@ -1608,32 +1639,6 @@ function initValEmailDrawer() {
     previewStep.style.display = 'none';
   }
 
-  function showPreview() {
-    emailTags.commitInput();
-    var emails = emailTags.getEmails();
-    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
-
-    var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
-    var subject = 'Essência do Brasil – Relatório de Validade';
-
-    var vencidos = 0, criticos = 0;
-    if (VAL.data) {
-      VAL.data.forEach(function(r) {
-        if (r.diasRestantes < 0)        vencidos++;
-        else if (r.diasRestantes <= 30) criticos++;
-      });
-    }
-    var preview = vencidos + ' vencido(s) + ' + criticos + ' crítico(s) serão listados no relatório.';
-
-    previewBox.innerHTML =
-      '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
-      '<div class="email-preview-subject">'+escHtml(subject)+' · '+vencidos+' vencido(s) · '+criticos+' crítico(s) · &lt;data&gt;</div>'+
-      '<div style="margin-top:12px;font-size:13px;color:var(--text-muted)">'+escHtml(preview)+'</div>';
-
-    composeStep.style.display = 'none';
-    previewStep.style.display = '';
-  }
-
   if (openBtn) openBtn.addEventListener('click', openDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
   if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
@@ -1642,7 +1647,47 @@ function initValEmailDrawer() {
     previewStep.style.display = 'none';
     composeStep.style.display = '';
   });
-  if (sendBtn) sendBtn.addEventListener('click', showPreview);
+  if (sendBtn) sendBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+
+    var origHtml = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Gerando preview...';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        if (!res || !res.sucesso) { toast('Erro ao gerar preview', 'err'); return; }
+
+        var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+        previewBox.innerHTML =
+          '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+          '<div class="email-preview-subject">'+escHtml(res.assunto)+'</div>'+
+          '<div id="valPreviewContent" style="margin-top:12px"></div>';
+
+        var contentDiv = qs('#valPreviewContent');
+        if (res.html && res.html.length) {
+          var iframe = document.createElement('iframe');
+          iframe.className = 'email-preview-iframe';
+          iframe.srcdoc = res.html;
+          contentDiv.appendChild(iframe);
+        } else {
+          contentDiv.innerHTML = '<div style="font-size:13px;color:var(--text-muted)">Nenhum produto crítico ou vencido no momento.</div>';
+        }
+
+        composeStep.style.display = 'none';
+        previewStep.style.display = '';
+      })
+      .withFailureHandler(function(err) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        toast('Erro ao gerar preview: '+(err&&err.message?err.message:'falha'), 'err');
+      })
+      .gerarPreviewEmailValidade(emails);
+  });
   if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
 
   if (confirmBtn) confirmBtn.addEventListener('click', function() {

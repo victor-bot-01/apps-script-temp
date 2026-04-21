@@ -101,9 +101,9 @@
 
 /* ── < 960px ─────────────────────────────────────── */
 @media (max-width: 960px) {
-  .home-layout { flex-direction: column; align-items: center; }
+  .home-layout { display: block; }
   .home-lupa-col { display: none; }
-  .home-content-col { max-width: 100%; }
+  .home-content-col { width: 100%; max-width: 100%; }
   .home-nav-grid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -156,17 +156,24 @@
   .home-persp-grid { height: 42%; }
 }
 
-/* ── < 640px — Task 1 mobile fixes ──────────────── */
+/* ── < 640px ─────────────────────────────────────── */
 @media (max-width: 640px) {
-  .icon-btn { width: 34px; height: 34px; }
+  .icon-btn { width: 36px; height: 36px; min-width: 36px; padding: 0; }
   .icon-btn svg { width: 14px; height: 14px; }
   .page-header-right { gap: 6px; flex-wrap: nowrap; }
+  .page-header { padding: 10px 14px; min-height: 52px; }
+  .page-title { font-size: 16px; font-weight: 700; }
+  .page-subtitle { font-size: 11px; }
+  .back-btn { font-size: 13px; padding: 6px 10px; }
   .filtros-bar { flex-direction: column; align-items: stretch; }
   .filtros-bar input, .filtros-bar select { width: 100%; min-width: unset; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .summary-value { font-size: 18px; }
   .summary-label { font-size: 10px; }
   .summary-card { padding: 12px 10px; }
+  .mob-nav-bar { height: 62px; padding-bottom: env(safe-area-inset-bottom, 8px); }
+  .mob-nav-item svg { width: 22px; height: 22px; }
+  .mob-nav-item span { font-size: 10px; }
 }
 
 /* ── < 600px ─────────────────────────────────────── */

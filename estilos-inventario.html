@@ -141,4 +141,13 @@
 .item.fading-out { animation: fadeOut 0.4s ease forwards; pointer-events: none; }
 .item.is-inactive { opacity: 0.44; }
 .item.is-inactive .produto { text-decoration: line-through; }
+
+@media (max-width: 640px) {
+  .search-box { font-size: 16px; padding: 12px 16px 12px 44px; height: 48px; }
+  .item { padding: 12px 14px; min-height: 58px; }
+  .produto { font-size: 14px; }
+  .caixa-badge { font-size: 11px; }
+  .toolbar-right { flex-wrap: wrap; gap: 6px; }
+  .small-btn { font-size: 11px; padding: 5px 8px; }
+}
 </style>

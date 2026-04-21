@@ -32,7 +32,8 @@ function buscarProdutosWeb(termoBusca) {
       var qtd     = dados[i][j + 1];
       var caixa   = dados[HEADER_ROW][j];
 
-      if (!produto || !qtd || qtd <= 0) continue;
+      var qtdNum = Number(qtd);
+      if (!produto || isNaN(qtdNum) || qtdNum <= 0) continue;
 
       var nome  = produto.toString().toLowerCase();
       var match = palavras.every(function(p) { return nome.indexOf(p) !== -1; });
@@ -128,22 +129,51 @@ function setProductStatus(produto, caixa, ativo) {
 function getSemEtiquetaData() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Status_Inativos');
-  if (!sh || sh.getLastRow() < 2) return [];
-  var data = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
-  return data
-    .filter(function(r) { return r[0] && r[1]; })
-    .map(function(r) { return { produto: String(r[0]), caixa: String(r[1]), qtdOriginal: r[2] || 0 }; });
+  var result = [];
+  var keysInResult = {};
+
+  if (sh && sh.getLastRow() >= 2) {
+    var data = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+    data.filter(function(r) { return r[0] && r[1]; }).forEach(function(r) {
+      var key = r[0].toString() + '|' + r[1].toString();
+      keysInResult[key] = true;
+      result.push({ produto: String(r[0]), caixa: String(r[1]), qtdOriginal: r[2] || 0 });
+    });
+  }
+
+  var invSheet = ss.getSheetByName('Inventário');
+  if (invSheet && invSheet.getLastRow() >= 2) {
+    var dados = invSheet.getDataRange().getValues();
+    var HEADER_ROW = 0;
+    for (var i = 1; i < dados.length; i++) {
+      for (var j = 2; j < dados[0].length; j += 2) {
+        var produto = dados[i][j];
+        var qtd     = dados[i][j + 1];
+        var caixa   = dados[HEADER_ROW][j];
+        if (!produto) continue;
+        var qtdNum = Number(qtd);
+        if (isNaN(qtdNum) || qtdNum > 0) continue;
+        var key = produto.toString() + '|' + caixa.toString();
+        if (!keysInResult[key]) {
+          keysInResult[key] = true;
+          result.push({ produto: String(produto), caixa: String(caixa), qtdOriginal: 0 });
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 function enviarRelatorioInativosEmail(destinatario) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('Status_Inativos');
   if (!sh || sh.getLastRow() < 2)
-    return { sucesso: true, mensagem: 'Nenhum produto inativo encontrado.' };
+    return { sucesso: true, mensagem: 'Nenhum produto indisponível encontrado.' };
   var data = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
   var inativos = data.filter(function(r) { return r[0] && r[1]; });
   if (inativos.length === 0)
-    return { sucesso: true, mensagem: 'Nenhum produto inativo encontrado.' };
+    return { sucesso: true, mensagem: 'Nenhum produto indisponível encontrado.' };
 
   var tz      = Session.getScriptTimeZone();
   var now     = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
@@ -156,17 +186,17 @@ function enviarRelatorioInativosEmail(destinatario) {
   var html =
     '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;' +
     'background:#040d06;color:#ccc;padding:32px;border-radius:8px;">' +
-    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Produtos Inativos</h2>' +
+    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Produtos Indisponíveis</h2>' +
     '<p style="color:#666;font-size:13px;margin:0 0 24px;">Essência do Brasil · ' + now + '</p>' +
     '<table style="width:100%;border-collapse:collapse;">' +
     '<tr><th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">PRODUTO</th>' +
     '<th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">CAIXA</th></tr>' +
     linhas +
     '</table><p style="margin-top:20px;font-size:12px;color:#555;">Total: <strong style="color:#00ff96;">' +
-    inativos.length + '</strong> produto(s) inativo(s)</p></div>';
+    inativos.length + '</strong> item(s) indisponível(s)</p></div>';
 
-  var subject = 'Essência do Brasil – Para Produção dos Rótulos · ' +
-    inativos.length + ' produto(s) inativo(s) · ' + now;
+  var subject = 'Essencia do Brasil - Para Producao dos Rotulos . ' +
+    inativos.length + ' item(s) indisponivel(s) . ' + now;
 
   var recipients = destinatario.split(',').map(function(e) { return e.trim(); }).filter(Boolean);
   recipients.forEach(function(email) {
@@ -174,6 +204,180 @@ function enviarRelatorioInativosEmail(destinatario) {
   });
 
   return { sucesso: true, mensagem: 'Relatório enviado para ' + recipients.join(', ') };
+}
+
+function gerarPreviewEmailIndisponiveis(destinatarios) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Status_Inativos');
+  if (!sh || sh.getLastRow() < 2)
+    return { sucesso: true, html: '', assunto: '', total: 0 };
+  var data = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+  var inativos = data.filter(function(r) { return r[0] && r[1]; });
+  if (inativos.length === 0)
+    return { sucesso: true, html: '', assunto: '', total: 0 };
+
+  var tz  = Session.getScriptTimeZone();
+  var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+  var linhas = inativos.map(function(r) {
+    return '<tr>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;">' + r[0] + '</td>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;color:#777;">' + r[1] + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;' +
+    'background:#040d06;color:#ccc;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Produtos Indisponíveis</h2>' +
+    '<p style="color:#666;font-size:13px;margin:0 0 24px;">Essência do Brasil · ' + now + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;">' +
+    '<tr><th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">PRODUTO</th>' +
+    '<th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">CAIXA</th></tr>' +
+    linhas +
+    '</table><p style="margin-top:20px;font-size:12px;color:#555;">Total: <strong style="color:#00ff96;">' +
+    inativos.length + '</strong> item(s) indisponível(s)</p></div>';
+
+  var assunto = 'Essencia do Brasil - Para Producao dos Rotulos . ' +
+    inativos.length + ' item(s) indisponivel(s) . ' + now;
+
+  return { sucesso: true, html: html, assunto: assunto, total: inativos.length };
+}
+
+function gerarPreviewEmailValidade(destinatarios) {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Validade');
+  if (!sheet) return { sucesso: true, html: '', assunto: '', vencidos: 0, criticos: 0 };
+
+  var rows     = sheet.getDataRange().getValues();
+  var vencidos = [];
+  var criticos = [];
+
+  for (var i = 1; i < rows.length; i++) {
+    var r = rows[i];
+    if (!r[1]) continue;
+    var item = {
+      produto:  String(r[1]  || ''),
+      validade: String(r[5]  || ''),
+      dias:     Number(r[6]) || 0,
+      estoque:  String(r[9]  || '')
+    };
+    if (item.dias < 0)        vencidos.push(item);
+    else if (item.dias <= 30) criticos.push(item);
+  }
+
+  if (!vencidos.length && !criticos.length)
+    return { sucesso: true, html: '', assunto: '', vencidos: 0, criticos: 0 };
+
+  var tz  = Session.getScriptTimeZone();
+  var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+
+  function tableRows(list, cor) {
+    var out = '';
+    for (var k = 0; k < list.length; k++) {
+      var p  = list[k];
+      var bg = (k % 2 === 0) ? '#fafafa' : '#ffffff';
+      out += '<tr style="background:' + bg + '">' +
+        '<td style="padding:8px 10px;color:#333">' + p.produto + '</td>' +
+        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.validade + '</td>' +
+        '<td style="padding:8px 10px;text-align:center;color:' + cor + ';font-weight:700">' + p.dias + 'd</td>' +
+        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.estoque + '</td>' +
+        '</tr>';
+    }
+    return out;
+  }
+
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#f4f4f4;padding:20px">' +
+      '<div style="background:#071a0b;border-radius:12px;padding:24px;margin-bottom:20px">' +
+        '<h1 style="margin:0 0 6px;font-size:22px;color:#00e676">Essência do Brasil</h1>' +
+        '<p style="margin:0;font-size:11px;color:rgba(0,230,118,0.6);letter-spacing:1px">RELATÓRIO DE VALIDADE — ' + now + '</p>' +
+      '</div>';
+
+  if (vencidos.length) {
+    html +=
+      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #c62828">' +
+        '<h2 style="color:#c62828;margin:0 0 14px;font-size:16px">&#9888; Vencidos (' + vencidos.length + ')</h2>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+          '<tr style="background:#ffebee">' +
+            '<th style="text-align:left;padding:8px 10px;color:#c62828">Produto</th>' +
+            '<th style="padding:8px 10px;color:#c62828">Validade</th>' +
+            '<th style="padding:8px 10px;color:#c62828">Dias</th>' +
+            '<th style="padding:8px 10px;color:#c62828">Estoque</th>' +
+          '</tr>' +
+          tableRows(vencidos, '#c62828') +
+        '</table>' +
+      '</div>';
+  }
+
+  if (criticos.length) {
+    html +=
+      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #e65100">' +
+        '<h2 style="color:#e65100;margin:0 0 14px;font-size:16px">&#9888; Críticos — vence em até 30 dias (' + criticos.length + ')</h2>' +
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+          '<tr style="background:#fff3e0">' +
+            '<th style="text-align:left;padding:8px 10px;color:#e65100">Produto</th>' +
+            '<th style="padding:8px 10px;color:#e65100">Validade</th>' +
+            '<th style="padding:8px 10px;color:#e65100">Dias</th>' +
+            '<th style="padding:8px 10px;color:#e65100">Estoque</th>' +
+          '</tr>' +
+          tableRows(criticos, '#e65100') +
+        '</table>' +
+      '</div>';
+  }
+
+  html +=
+      '<div style="text-align:center;padding:16px;color:#aaa;font-size:11px">' +
+        'Gerado automaticamente pelo Sistema de Gestão Essência do Brasil' +
+      '</div>' +
+    '</div>';
+
+  var assunto = 'Essência do Brasil – Relatório de Validade · ' +
+    vencidos.length + ' vencido(s) · ' + criticos.length + ' crítico(s) · ' + now;
+
+  return { sucesso: true, html: html, assunto: assunto, vencidos: vencidos.length, criticos: criticos.length };
+}
+
+function syncInativosFromInventario() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var invSheet = ss.getSheetByName('Inventário');
+  if (!invSheet) return { sucesso: true, adicionados: 0 };
+
+  var sh = ss.getSheetByName('Status_Inativos');
+  if (!sh) {
+    sh = ss.insertSheet('Status_Inativos');
+    sh.getRange(1, 1, 1, 3).setValues([['Produto', 'Caixa', 'Qtd_Original']]);
+    sh.getRange(1, 1, 1, 3).setFontWeight('bold');
+  }
+
+  var existingKeys = {};
+  if (sh.getLastRow() >= 2) {
+    var existingData = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+    existingData.forEach(function(r) {
+      if (r[0] && r[1]) existingKeys[r[0].toString() + '|' + r[1].toString()] = true;
+    });
+  }
+
+  var dados = invSheet.getDataRange().getValues();
+  var HEADER_ROW = 0;
+  var adicionados = 0;
+
+  for (var i = 1; i < dados.length; i++) {
+    for (var j = 2; j < dados[0].length; j += 2) {
+      var produto = dados[i][j];
+      var qtd     = dados[i][j + 1];
+      var caixa   = dados[HEADER_ROW][j];
+      if (!produto) continue;
+      var qtdNum = Number(qtd);
+      if (!isNaN(qtdNum) && qtdNum > 0) continue;
+      var key = produto.toString() + '|' + caixa.toString();
+      if (!existingKeys[key]) {
+        sh.appendRow([produto, caixa, 0]);
+        existingKeys[key] = true;
+        adicionados++;
+      }
+    }
+  }
+
+  return { sucesso: true, adicionados: adicionados };
 }
 
 function enviarRelatorioValidadeEmail(destinatario) {
