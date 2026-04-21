@@ -2,6 +2,15 @@
 (function() {
 'use strict';
 
+(function clearOldCache() {
+  var keys = [];
+  for (var i = 0; i < sessionStorage.length; i++) {
+    var k = sessionStorage.key(i);
+    if (k && k.indexOf('inv_cache_') === 0) keys.push(k);
+  }
+  keys.forEach(function(k) { sessionStorage.removeItem(k); });
+})();
+
 /* ═══════════════════════════════════════════════════
    CONSTANTES
    ═══════════════════════════════════════════════════ */
@@ -542,12 +551,22 @@ var INV = {
 
   getCache: function(term) {
     try {
-      var r = sessionStorage.getItem('inv_cache_'+term.toLowerCase().trim());
-      return r ? JSON.parse(r) : null;
+      var raw = sessionStorage.getItem('inv_cache_' + term.toLowerCase().trim());
+      if (!raw) return null;
+      var entry = JSON.parse(raw);
+      if (!entry || !entry.ts || !entry.data) return null;
+      if (Date.now() - entry.ts > 600000) {
+        sessionStorage.removeItem('inv_cache_' + term.toLowerCase().trim());
+        return null;
+      }
+      return entry.data;
     } catch(e) { return null; }
   },
   setCache: function(term, data) {
-    try { sessionStorage.setItem('inv_cache_'+term.toLowerCase().trim(), JSON.stringify(data)); } catch(e) {}
+    try {
+      var entry = { data: data, ts: Date.now() };
+      sessionStorage.setItem('inv_cache_' + term.toLowerCase().trim(), JSON.stringify(entry));
+    } catch(e) {}
   },
 
   saveRecent: function(term) {
