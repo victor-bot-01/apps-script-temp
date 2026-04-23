@@ -589,6 +589,71 @@ function enviarRelatorioInativo() {
   };
 }
 
+function enviarRelatorioParaProducaoEmail(destinatario, produtos) {
+  var items = [];
+  try { items = JSON.parse(produtos); } catch(e) { items = []; }
+  if (!items.length) return { sucesso: true, mensagem: 'Nenhum item selecionado.' };
+
+  var tz  = Session.getScriptTimeZone();
+  var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+
+  var linhas = items.map(function(r) {
+    return '<tr>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;">' + (r.produto||'') + '</td>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;color:#777;">' + (r.caixa||'') + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;' +
+    'background:#040d06;color:#ccc;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Para Produção dos Rótulos</h2>' +
+    '<p style="color:#666;font-size:13px;margin:0 0 24px;">Essência do Brasil · ' + now + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;">' +
+    '<tr><th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">PRODUTO</th>' +
+    '<th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">CAIXA</th></tr>' +
+    linhas +
+    '</table><p style="margin-top:20px;font-size:12px;color:#555;">Total: <strong style="color:#00ff96;">' +
+    items.length + '</strong> item(s) selecionado(s)</p></div>';
+
+  var subject = 'Essencia do Brasil - Para Producao dos Rotulos . ' + items.length + ' item(s) selecionado(s) . ' + now;
+  var recipients = destinatario.split(',').map(function(e) { return e.trim(); }).filter(Boolean);
+  recipients.forEach(function(email) {
+    MailApp.sendEmail({ to: email, subject: subject, htmlBody: html });
+  });
+
+  return { sucesso: true, mensagem: 'Relatório enviado para ' + recipients.join(', ') + ' com ' + items.length + ' item(s).' };
+}
+
+function gerarPreviewEmailParaProducao(destinatarios, produtos) {
+  var items = [];
+  try { items = JSON.parse(produtos); } catch(e) { items = []; }
+  if (!items.length) return { sucesso: true, html: '', assunto: '', total: 0 };
+
+  var tz  = Session.getScriptTimeZone();
+  var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+
+  var linhas = items.map(function(r) {
+    return '<tr>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;">' + (r.produto||'') + '</td>' +
+      '<td style="padding:10px 14px;border-bottom:1px solid #1e3a22;color:#777;">' + (r.caixa||'') + '</td></tr>';
+  }).join('');
+
+  var html =
+    '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;' +
+    'background:#040d06;color:#ccc;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#00ff96;margin:0 0 4px;font-size:20px;">Relatório — Para Produção dos Rótulos</h2>' +
+    '<p style="color:#666;font-size:13px;margin:0 0 24px;">Essência do Brasil · ' + now + '</p>' +
+    '<table style="width:100%;border-collapse:collapse;">' +
+    '<tr><th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">PRODUTO</th>' +
+    '<th style="text-align:left;padding:10px 14px;color:#00ff96;border-bottom:2px solid #1e4a28;font-size:12px;letter-spacing:1px;">CAIXA</th></tr>' +
+    linhas +
+    '</table><p style="margin-top:20px;font-size:12px;color:#555;">Total: <strong style="color:#00ff96;">' +
+    items.length + '</strong> item(s) selecionado(s)</p></div>';
+
+  var assunto = 'Essencia do Brasil - Para Producao dos Rotulos . ' + items.length + ' item(s) selecionado(s) . ' + now;
+  return { sucesso: true, html: html, assunto: assunto, total: items.length };
+}
+
 function getValidadeData() {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Validade");

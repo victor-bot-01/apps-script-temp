@@ -13,6 +13,16 @@
       <div class="page-subtitle">Produtos para produção dos rótulos</div>
     </div>
     <div class="page-header-right">
+      <button class="icon-btn" id="seEmailReportBtn"
+              aria-label="Enviar relatório por e-mail"
+              title="Relatório por e-mail">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </button>
       <button class="icon-btn theme-btn" aria-label="Alternar tema" title="Alternar tema (Ctrl+D)">
         <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -71,4 +81,108 @@
     </div>
   </div>
 
+</div>
+
+<!-- Email overlay — Para Producao (item selection + compose + preview) -->
+<div id="seEmailOverlay" class="email-overlay" role="dialog" aria-modal="true" style="display:none">
+  <div class="email-drawer">
+
+    <!-- STEP A: item selection -->
+    <div id="seSelectStep">
+      <div class="email-drawer-hdr">
+        <div>
+          <div class="email-drawer-title">Selecionar Itens</div>
+        </div>
+        <button class="icon-btn email-drawer-close-btn" id="seEmailDrawerClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="email-drawer-body">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="small-btn" id="seSelectAll" type="button">Selecionar tudo</button>
+          <button class="small-btn" id="seClearSelection" type="button">Limpar</button>
+        </div>
+        <div id="seItemCheckList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+        <div style="margin-top:10px;font-size:12px;color:var(--text-muted)" id="seSelectedCount">0 item(s) selecionado(s)</div>
+      </div>
+      <div class="email-drawer-footer">
+        <button class="email-send-btn" id="seNextToCompose" disabled>Próximo</button>
+      </div>
+    </div>
+
+    <!-- STEP B: compose -->
+    <div id="seComposeStep" style="display:none">
+      <div class="email-drawer-hdr">
+        <div>
+          <div class="email-drawer-title">Relatório de Para Produção</div>
+          <div class="email-drawer-sub">Itens selecionados para produção dos rótulos</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="icon-btn" id="seBackToSelect" aria-label="Voltar">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <button class="icon-btn email-drawer-close-btn" id="seEmailDrawerClose2" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="email-drawer-body">
+        <label class="email-field-lbl">E-mails de destino (até 5)</label>
+        <div class="email-tags-wrap" id="seEmailTagsWrap">
+          <div class="email-tags-inner" id="seEmailTagsInner"></div>
+          <input class="email-tags-input" id="seReportEmailInput" type="email" placeholder="email@exemplo.com">
+        </div>
+        <div class="saved-contacts-section" id="seSavedSection">
+          <div class="saved-contacts-hdr">
+            <span class="saved-contacts-lbl">Contatos salvos</span>
+          </div>
+          <div class="saved-contacts-list" id="seSavedList"></div>
+          <button class="save-current-link" id="seSaveCurrentBtn" type="button">Salvar atual</button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--text-muted)" id="sePreviewCount">0 item(s) serão incluídos no relatório</div>
+      </div>
+      <div class="email-drawer-footer">
+        <button class="email-send-btn" id="seEmailSendBtn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Enviar relatório
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP C: preview -->
+    <div id="sePreviewStep" style="display:none">
+      <div class="email-drawer-hdr">
+        <div>
+          <div class="email-drawer-title">Confirmar Envio</div>
+          <div class="email-drawer-sub">Revise antes de enviar</div>
+        </div>
+        <button class="icon-btn email-drawer-close-btn" id="seEmailDrawerClosePreview" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="email-drawer-body">
+        <div class="email-preview-box" id="sePreviewBox"></div>
+      </div>
+      <div class="email-drawer-footer">
+        <button class="email-confirm-btn" id="seEmailConfirmBtn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Confirmar envio
+        </button>
+        <button class="email-back-btn" id="seEmailBackToCompose">Voltar</button>
+      </div>
+    </div>
+
+  </div>
 </div>

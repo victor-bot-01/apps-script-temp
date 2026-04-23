@@ -64,12 +64,14 @@
 .val-card.fading-out { animation: fadeOut 0.4s ease forwards; pointer-events: none; }
 
 @media (max-width: 640px) {
+  .val-grid { grid-template-columns: 1fr; gap: 10px; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .summary-card { padding: 10px 8px; }
-  .summary-value { font-size: 22px; }
-  .summary-label { font-size: 10px; }
-  .filtros-bar { flex-direction: column; gap: 8px; }
-  .filtros-bar input, .filtros-bar select { width: 100%; font-size: 16px; }
-  .val-grid { grid-template-columns: 1fr; }
+  .summary-card { padding: 10px 6px; }
+  .summary-value { font-size: 20px; }
+  .summary-label { font-size: 9px; }
+  .filtros-bar { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .filtros-bar input[type="search"] { width: 100%; font-size: 16px; padding: 10px 12px; }
+  .filtros-bar select { width: 100%; font-size: 16px; padding: 8px 10px; }
+  .filtros-bar .refresh-btn, .filtros-bar .small-btn { width: 100%; justify-content: center; padding: 10px; font-size: 13px; }
 }
 </style>

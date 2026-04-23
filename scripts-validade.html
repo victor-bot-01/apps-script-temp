@@ -1,0 +1,775 @@
+<script>
+/* callback set by initSemEtiquetaEmailDrawer, called when SE data loads */
+var _seDrawerRenderCb = null;
+
+/* ═══════════════════════════════════════════════════
+   PAGE: VALIDADE
+   ═══════════════════════════════════════════════════ */
+var VAL = {
+  data:            null,
+  filtered:        [],
+  filterQuery:     '',
+  filterStatus:    'all',
+  sortMode:        localStorage.getItem('val_sort') || 'nearest',
+  debounceTimer:   null,
+  _eventsAttached: false,
+  _hideVencidos:   false,
+
+  loadData: function(forceRefresh) {
+    if (!forceRefresh) {
+      try {
+        var raw = sessionStorage.getItem('val_cache');
+        if (raw) {
+          VAL.data = JSON.parse(raw);
+          VAL.updateSummary(); VAL.applyFilters();
+          var sk = qs('#val-skel'), gr = qs('#val-results');
+          if (sk) sk.style.display = 'none'; if (gr) gr.style.display = '';
+          return;
+        }
+      } catch(e) {}
+    }
+
+    var sk = qs('#val-skel'), gr = qs('#val-results');
+    if (sk) sk.style.display = '';
+    if (gr) { gr.style.display = 'none'; gr.innerHTML = ''; }
+
+    google.script.run
+      .withSuccessHandler(function(rows) {
+        try { sessionStorage.setItem('val_cache', JSON.stringify(rows||[])); } catch(e) {}
+        VAL.data = rows || [];
+        if (sk) sk.style.display = 'none';
+        if (gr) gr.style.display = '';
+        VAL.updateSummary(); VAL.applyFilters();
+      })
+      .withFailureHandler(function(err) {
+        if (sk) sk.style.display = 'none';
+        if (gr) {
+          gr.style.display = '';
+          gr.innerHTML = '<div class="state-box state-empty" style="grid-column:1/-1"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e53935" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="state-title">Erro ao carregar dados</div><div class="state-desc">'+escHtml(err&&err.message?err.message:'Erro desconhecido.')+'</div></div>';
+        }
+        toast('Erro ao carregar validades','err');
+      })
+      .getValidadeData();
+  },
+
+  updateSummary: function() {
+    if (!VAL.data) return;
+    var total   = VAL.data.length;
+    var atencao = VAL.data.filter(function(r){ return r.diasRestantes >= 0 && r.diasRestantes <= 90; }).length;
+    var critico = VAL.data.filter(function(r){ return r.diasRestantes < 0; }).length;
+    var te = qs('#val-total'), ae = qs('#val-atencao'), ce = qs('#val-critico');
+    if (te) te.textContent = total;
+    if (ae) ae.textContent = atencao;
+    if (ce) ce.textContent = critico;
+  },
+
+  toggleVencidos: function() {
+    VAL._hideVencidos = !VAL._hideVencidos;
+    var lbl = qs('#val-toggle-inativo-lbl');
+    if (lbl) lbl.textContent = VAL._hideVencidos ? 'Mostrar Vencidos' : 'Ocultar Vencidos';
+    if (VAL._hideVencidos) {
+      qsa('#val-results .val-card.danger').forEach(function(card) {
+        card.classList.add('fading-out');
+        card.addEventListener('animationend', function() { card.style.display = 'none'; }, { once: true });
+      });
+    } else {
+      VAL.applyFilters();
+    }
+  },
+
+  applyFilters: function() {
+    if (!VAL.data) return;
+    var q = VAL.filterQuery.toLowerCase().trim(), st = VAL.filterStatus;
+    var result = VAL.data.filter(function(r) {
+      if (VAL._hideVencidos && r.diasRestantes < 0) return false;
+      if (q && q.length >= 2 && r.produto.toLowerCase().indexOf(q) === -1) return false;
+      if (st !== 'all') {
+        var s = (r.status||'').toLowerCase();
+        if (st==='ok'      && s !== 'ok') return false;
+        if (st==='atencao' && s.indexOf('aten') === -1) return false;
+        if (st==='critico' && s.indexOf('cr')   === -1) return false;
+        if (st==='vencido' && s !== 'vencido') return false;
+      }
+      return true;
+    });
+    var sm = VAL.sortMode;
+    result = result.slice().sort(function(a,b) {
+      if (sm==='nearest'||sm==='days') return a.diasRestantes - b.diasRestantes;
+      if (sm==='farthest') return b.diasRestantes - a.diasRestantes;
+      if (sm==='name') return (a.produto||'').localeCompare(b.produto||'');
+      return 0;
+    });
+    VAL.filtered = result;
+    VAL.renderCards(); VAL.updateCountBar();
+  },
+
+  updateCountBar: function() {
+    var el = qs('#val-count-bar');
+    if (el) el.innerHTML = 'Mostrando <strong>'+VAL.filtered.length+'</strong> de <strong>'+(VAL.data?VAL.data.length:0)+'</strong> produtos';
+  },
+
+  getCardClass:   function(dias) { if (dias<0) return 'danger'; if (dias<=30) return 'warning'; if (dias<=90) return 'caution'; return 'ok'; },
+  getDiasClass:   function(dias) { if (dias<0) return 'dias-crit'; if (dias<=30) return 'dias-warn'; if (dias<=90) return 'dias-caution'; return 'dias-ok'; },
+  getStatusClass: function(status) {
+    var s = (status||'').toLowerCase();
+    if (s === 'ok') return 'badge-ok';
+    if (s === 'vencido' || s.indexOf('cr') !== -1) return 'badge-crit';
+    return 'badge-warn';
+  },
+
+  renderCards: function() {
+    var grid = qs('#val-results'); if (!grid) return;
+    grid.style.display = '';
+    if (!VAL.filtered.length) {
+      grid.innerHTML = '<div class="state-box state-empty" style="grid-column:1/-1"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ffb300" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="state-title">Nenhum produto encontrado</div><div class="state-desc">Tente outros filtros.</div></div>';
+      return;
+    }
+    var frag = document.createDocumentFragment();
+    VAL.filtered.forEach(function(r, i) {
+      var card = document.createElement('div');
+      card.className = 'val-card ' + VAL.getCardClass(r.diasRestantes);
+      card.style.animationDelay = Math.min(i*30,300)+'ms';
+      var dias = r.diasRestantes;
+      var diasClass = VAL.getDiasClass(dias);
+      var diasLabel = dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes';
+      var badges = '';
+      if (r.status) badges += '<span class="badge '+VAL.getStatusClass(r.status)+'">'+escHtml(r.status)+'</span>';
+      if (r.estoque) {
+        var ec = r.estoque.toUpperCase()==='TEMOS' ? 'badge-temos' : 'badge-falta';
+        badges += '<span class="badge '+ec+'">'+escHtml(r.estoque)+'</span>';
+      }
+      if (r.precisaProduzir && r.precisaProduzir.toUpperCase() !== 'NÃO' && r.precisaProduzir !== '') {
+        badges += '<span class="badge badge-produzir">Produzir: '+escHtml(r.precisaProduzir)+'</span>';
+      }
+      var obs     = r.observacao ? '<div class="val-obs">'+escHtml(r.observacao)+'</div>' : '';
+      var loteEta = (r.lote ? 'Lote '+escHtml(r.lote) : '')+(r.lote&&r.etiqueta?' · ':'')+(r.etiqueta ? 'Etiq. '+escHtml(r.etiqueta) : '');
+      card.innerHTML =
+        '<div class="val-card-header">'+
+          '<div class="val-prod-name">'+escHtml(r.produto)+'</div>'+
+          '<span class="val-dias-badge '+diasClass+'">'+diasLabel+'</span>'+
+        '</div>'+
+        '<div class="val-date">'+escHtml(fmtDate(r.validade)||r.validade)+'</div>'+
+        (loteEta ? '<div class="val-lote-eta">'+loteEta+'</div>' : '')+
+        (badges  ? '<div class="val-badges">'+badges+'</div>' : '')+
+        obs;
+      frag.appendChild(card);
+    });
+    grid.innerHTML = ''; grid.appendChild(frag);
+  },
+
+  init: function() {
+    if (!VAL._eventsAttached) {
+      VAL._eventsAttached = true;
+
+      var fi = qs('#val-search');
+      if (fi) fi.addEventListener('input', function() {
+        clearTimeout(VAL.debounceTimer);
+        VAL.debounceTimer = setTimeout(function(){ VAL.filterQuery = fi.value; VAL.applyFilters(); }, 280);
+      });
+
+      var ss = qs('#val-sort');
+      if (ss) {
+        ss.value = VAL.sortMode;
+        ss.addEventListener('change', function(){
+          VAL.sortMode = ss.value; localStorage.setItem('val_sort', VAL.sortMode); VAL.applyFilters();
+        });
+      }
+
+      var ts = qs('#val-filter');
+      if (ts) ts.addEventListener('change', function(){ VAL.filterStatus = ts.value; VAL.applyFilters(); });
+
+      var rb = qs('#val-refresh');
+      if (rb) rb.addEventListener('click', function() {
+        try { sessionStorage.removeItem('val_cache'); } catch(e) {}
+        VAL.data = null; VAL.loadData(true); toast('Atualizando dados…','ok');
+      });
+
+      var toggleBtn = qs('#val-toggle-inativo');
+      if (toggleBtn) toggleBtn.addEventListener('click', VAL.toggleVencidos);
+    }
+    VAL.loadData(false);
+  },
+
+  destroy: function() { clearTimeout(VAL.debounceTimer); }
+};
+
+/* ═══════════════════════════════════════════════════
+   PAGE: SEM ETIQUETA
+   ═══════════════════════════════════════════════════ */
+var SEM_ETIQUETA = {
+  data:            null,
+  filtered:        [],
+  searchQuery:     '',
+  debounceTimer:   null,
+  _eventsAttached: false,
+
+  loadData: function() {
+    var loadEl = qs('#se-loading'), countEl = qs('#se-count'), content = qs('#se-content');
+    if (loadEl) loadEl.classList.add('visible');
+    if (countEl) countEl.innerHTML = '';
+    if (content) {
+      content.innerHTML = '<div class="skel-list">'+
+        '<div class="skel-item shimmer"></div>'+
+        '<div class="skel-item shimmer"></div>'+
+        '<div class="skel-item shimmer"></div>'+
+        '</div>';
+    }
+
+    function fetchData() {
+      google.script.run
+        .withSuccessHandler(function(rows) {
+          if (loadEl) loadEl.classList.remove('visible');
+          SEM_ETIQUETA.data = rows || [];
+          SEM_ETIQUETA.applySearch();
+          if (typeof _seDrawerRenderCb === 'function') _seDrawerRenderCb(SEM_ETIQUETA.data);
+        })
+        .withFailureHandler(function(err) {
+          if (loadEl) loadEl.classList.remove('visible');
+          if (content) {
+            content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#e53935" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="state-title">Erro ao carregar</div><div class="state-desc">'+escHtml(err&&err.message?err.message:'Erro desconhecido')+'</div></div>';
+          }
+          toast('Erro ao carregar dados','err');
+        })
+        .getSemEtiquetaData();
+    }
+
+    google.script.run
+      .withSuccessHandler(fetchData)
+      .withFailureHandler(fetchData)
+      .syncInativosFromInventario();
+  },
+
+  applySearch: function() {
+    if (!SEM_ETIQUETA.data) return;
+    var q = SEM_ETIQUETA.searchQuery.toLowerCase().trim();
+    SEM_ETIQUETA.filtered = SEM_ETIQUETA.data.filter(function(r) {
+      if (!q) return true;
+      return r.produto.toLowerCase().indexOf(q) !== -1 || r.caixa.toLowerCase().indexOf(q) !== -1;
+    });
+    SEM_ETIQUETA.renderResults();
+  },
+
+  renderResults: function() {
+    var content  = qs('#se-content');
+    var countEl  = qs('#se-count');
+    if (!content) return;
+
+    if (countEl) {
+      countEl.innerHTML = '<strong>' + SEM_ETIQUETA.filtered.length + '</strong> de ' + SEM_ETIQUETA.data.length + ' item(ns)';
+    }
+
+    if (!SEM_ETIQUETA.filtered.length) {
+      content.innerHTML = '<div class="state-box state-empty"><div class="state-icon"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ffb300" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+        '<div class="state-title">' + (SEM_ETIQUETA.data.length === 0 ? 'Nenhum produto sem etiqueta' : 'Nenhum resultado') + '</div>' +
+        '<div class="state-desc">' + (SEM_ETIQUETA.data.length === 0 ? 'Todos os produtos estão com etiqueta disponível.' : 'Tente outro termo de busca.') + '</div></div>';
+      return;
+    }
+
+    var list = document.createElement('div');
+    list.className = 'items-list view-list';
+    var frag = document.createDocumentFragment();
+
+    SEM_ETIQUETA.filtered.forEach(function(row, i) {
+      var el = document.createElement('div');
+      el.className = 'item';
+      el.style.animationDelay = Math.min(i * 40, 400) + 'ms';
+      el.innerHTML =
+        '<div class="item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>'+
+        '<div class="item-info">'+
+          '<div class="produto">'+escHtml(row.produto)+'</div>'+
+          '<div class="caixa-badge"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>'+escHtml(row.caixa||'Sem caixa')+'</div>'+
+          (row.qtdOriginal ? '<div style="font-size:11px;color:var(--text-muted);margin-top:3px">Qtd original: '+escHtml(String(row.qtdOriginal))+'</div>' : '')+
+        '</div>'+
+        '<button class="small-btn se-reativar-btn" style="flex-shrink:0">Reativar</button>';
+
+      var btn = el.querySelector('.se-reativar-btn');
+      (function(r) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          btn.disabled = true; btn.textContent = '…';
+          google.script.run
+            .withSuccessHandler(function() {
+              toast('Produto reativado: ' + r.produto, 'ok');
+              SEM_ETIQUETA.loadData();
+            })
+            .withFailureHandler(function() {
+              btn.disabled = false; btn.textContent = 'Reativar';
+              toast('Erro ao reativar','err');
+            })
+            .setProductStatus(r.produto, r.caixa, true);
+        });
+      })(row);
+
+      frag.appendChild(el);
+    });
+
+    list.appendChild(frag);
+    content.innerHTML = '';
+    content.appendChild(list);
+  },
+
+  init: function() {
+    if (!SEM_ETIQUETA._eventsAttached) {
+      SEM_ETIQUETA._eventsAttached = true;
+
+      var searchEl = qs('#se-search');
+      if (searchEl) searchEl.addEventListener('input', function() {
+        clearTimeout(SEM_ETIQUETA.debounceTimer);
+        SEM_ETIQUETA.debounceTimer = setTimeout(function() {
+          SEM_ETIQUETA.searchQuery = searchEl.value;
+          SEM_ETIQUETA.applySearch();
+        }, 280);
+      });
+
+      var refreshBtn = qs('#se-refresh');
+      if (refreshBtn) refreshBtn.addEventListener('click', function() {
+        SEM_ETIQUETA.data = null;
+        SEM_ETIQUETA.searchQuery = '';
+        var searchEl2 = qs('#se-search');
+        if (searchEl2) searchEl2.value = '';
+        SEM_ETIQUETA.loadData();
+        toast('Atualizando…','ok');
+      });
+    }
+    SEM_ETIQUETA.loadData();
+  },
+
+  destroy: function() { clearTimeout(SEM_ETIQUETA.debounceTimer); }
+};
+
+/* ═══════════════════════════════════════════════════
+   PAGES
+   ═══════════════════════════════════════════════════ */
+var PAGES = {
+  home: {
+    label: 'Home',
+    init:    function() { HOME.init(); },
+    destroy: function() { HOME.destroy(); }
+  },
+  inventario: {
+    label: 'Inventário',
+    init:    function() { INV.init(); },
+    destroy: function() { INV.destroy(); }
+  },
+  validade: {
+    label: 'Validade',
+    init:    function() { VAL.init(); },
+    destroy: function() { VAL.destroy(); }
+  },
+  'sem-etiqueta': {
+    label: 'Para Producao',
+    init:    function() { SEM_ETIQUETA.init(); },
+    destroy: function() { SEM_ETIQUETA.destroy(); }
+  }
+};
+
+/* ═══════════════════════════════════════════════════
+   EVENTOS DE NAVEGAÇÃO
+   ═══════════════════════════════════════════════════ */
+qsa('.nav-card[data-nav]').forEach(function(card) {
+  card.addEventListener('click', function() { ROUTER.navigate(card.getAttribute('data-nav')); });
+  card.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ROUTER.navigate(card.getAttribute('data-nav')); }
+  });
+});
+
+var backInv = qs('#backFromInventario');
+var backVal = qs('#backFromValidade');
+var backSE  = qs('#backFromSemEtiqueta');
+if (backInv) backInv.addEventListener('click', function(){ ROUTER.navigate('home'); });
+if (backVal) backVal.addEventListener('click', function(){ ROUTER.navigate('home'); });
+if (backSE)  backSE.addEventListener('click',  function(){ ROUTER.navigate('home'); });
+
+qsa('.mob-nav-item').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var dest = btn.getAttribute('data-nav');
+    if (dest) ROUTER.navigate(dest);
+  });
+});
+
+qsa('.theme-btn').forEach(function(btn) {
+  btn.addEventListener('click', THEME.toggle);
+});
+
+qsa('.shortcuts-btn').forEach(function(btn) {
+  btn.addEventListener('click', OVERLAY.open);
+});
+
+/* ═══════════════════════════════════════════════════
+   ATALHOS GLOBAIS
+   ═══════════════════════════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  var tag     = (e.target||{}).tagName;
+  var inInput = (tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT');
+
+  if (e.ctrlKey && e.key === 'd') {
+    e.preventDefault(); THEME.toggle(); return;
+  }
+  if (e.ctrlKey && e.key === 'e') {
+    e.preventDefault();
+    if (ROUTER.current === 'inventario') INV.exportCSV();
+    return;
+  }
+
+  if (!inInput) {
+    if (e.key === 'h' || e.key === 'H') { ROUTER.navigate('home'); return; }
+    if (e.key === '1') { ROUTER.navigate('inventario'); return; }
+    if (e.key === '2') { ROUTER.navigate('validade'); return; }
+    if (e.key === '3') { ROUTER.navigate('sem-etiqueta'); return; }
+    if (e.key === '?') { e.preventDefault(); OVERLAY.open(); return; }
+    if (e.key === '/') {
+      e.preventDefault();
+      if (ROUTER.current !== 'inventario') { ROUTER.navigate('inventario'); return; }
+      var sb = qs('#searchBox'); if (sb) sb.focus();
+      return;
+    }
+    if (e.key === 'ArrowUp' && ROUTER.current === 'inventario') {
+      e.preventDefault(); INV.moveFocus(-1); return;
+    }
+    if (e.key === 'ArrowDown' && ROUTER.current === 'inventario') {
+      e.preventDefault(); INV.moveFocus(1); return;
+    }
+  }
+
+  if (e.key === 'Escape') {
+    if (OVERLAY.isOpen()) { OVERLAY.close(); return; }
+    var invOv = qs('#emailOverlay'), valOv = qs('#valEmailOverlay'), seOv = qs('#seEmailOverlay');
+    if (invOv && invOv.style.display !== 'none') { invOv.style.display = 'none'; return; }
+    if (valOv && valOv.style.display !== 'none') { valOv.style.display = 'none'; return; }
+    if (seOv  && seOv.style.display  !== 'none') { seOv.style.display  = 'none'; return; }
+    if (ROUTER.current === 'inventario') {
+      var sbEsc = qs('#searchBox');
+      if (sbEsc && sbEsc.value) {
+        sbEsc.value = '';
+        var cb = qs('#clearBtn'); if (cb) cb.classList.remove('visible');
+        var gs = qs('#ghostSuggestion'); if (gs) gs.textContent = '';
+        var gh = qs('#ghostHint'); if (gh) gh.innerHTML = '';
+        INV.showState('hint');
+        var tb = qs('#toolbar'); if (tb) tb.classList.remove('visible');
+        var tp = qs('#termPillsWrap'); if (tp) tp.classList.remove('open');
+      }
+    }
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+   EMAIL DRAWER — VALIDADE
+   ═══════════════════════════════════════════════════ */
+function initValEmailDrawer() {
+  var overlay      = qs('#valEmailOverlay');
+  var openBtn      = qs('#valEmailReportBtn');
+  var closeBtn     = qs('#valEmailDrawerClose');
+  var closePrevBtn = qs('#valEmailDrawerClosePreview');
+  var sendBtn      = qs('#valEmailSendBtn');
+  var confirmBtn   = qs('#valConfirmBtn');
+  var backBtn      = qs('#valBackBtn');
+  var composeStep  = qs('#valComposeStep');
+  var previewStep  = qs('#valPreviewStep');
+  var previewBox   = qs('#valPreviewBox');
+  var saveBtn      = qs('#valSaveCurrentBtn');
+
+  if (!overlay) return;
+
+  var emailTags     = EmailTags('valEmailTagsInner', 'valReportEmailInput', 5);
+  var savedContacts = SavedContacts('valSavedList', emailTags);
+
+  function openDrawer() {
+    overlay.style.display = 'flex';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+    setTimeout(function() {
+      var inp = qs('#valReportEmailInput');
+      if (inp) inp.focus();
+    }, 80);
+  }
+
+  function closeDrawer() {
+    overlay.style.display = 'none';
+    composeStep.style.display = '';
+    previewStep.style.display = 'none';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openDrawer);
+  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+  if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDrawer(); });
+  if (backBtn) backBtn.addEventListener('click', function() {
+    previewStep.style.display = 'none';
+    composeStep.style.display = '';
+  });
+  if (sendBtn) sendBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+
+    var origHtml = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Gerando preview...';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        if (!res || !res.sucesso) { toast('Erro ao gerar preview', 'err'); return; }
+
+        var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+        previewBox.innerHTML =
+          '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+          '<div class="email-preview-subject">'+escHtml(res.assunto)+'</div>'+
+          '<div id="valPreviewContent" style="margin-top:12px"></div>';
+
+        var contentDiv = qs('#valPreviewContent');
+        if (res.html && res.html.length) {
+          var iframe = document.createElement('iframe');
+          iframe.className = 'email-preview-iframe';
+          iframe.srcdoc = res.html;
+          contentDiv.appendChild(iframe);
+        } else {
+          contentDiv.innerHTML = '<div style="font-size:13px;color:var(--text-muted)">Nenhum produto crítico ou vencido no momento.</div>';
+        }
+
+        composeStep.style.display = 'none';
+        previewStep.style.display = '';
+      })
+      .withFailureHandler(function(err) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        toast('Erro ao gerar preview: '+(err&&err.message?err.message:'falha'), 'err');
+      })
+      .gerarPreviewEmailValidade(emails);
+  });
+  if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
+
+  if (confirmBtn) confirmBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Nenhum e-mail válido', 'err'); return; }
+    var orig = confirmBtn.innerHTML;
+    confirmBtn.disabled = true; confirmBtn.textContent = 'Enviando…';
+    var destinatario = emails.join(',');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast(res.mensagem || 'Enviado!', res.sucesso ? 'ok' : 'err');
+        if (res.sucesso) { closeDrawer(); emailTags.clear(); }
+      })
+      .withFailureHandler(function() {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast('Erro ao enviar', 'err');
+      })
+      .enviarRelatorioValidadeEmail(destinatario);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   EMAIL DRAWER — PARA PRODUCAO (item selection)
+   ═══════════════════════════════════════════════════ */
+function initSemEtiquetaEmailDrawer() {
+  var overlay      = qs('#seEmailOverlay');
+  var openBtn      = qs('#seEmailReportBtn');
+  var closeBtn     = qs('#seEmailDrawerClose');
+  var closeBtn2    = qs('#seEmailDrawerClose2');
+  var closePrevBtn = qs('#seEmailDrawerClosePreview');
+  var selectStep   = qs('#seSelectStep');
+  var composeStep  = qs('#seComposeStep');
+  var previewStep  = qs('#sePreviewStep');
+  var selectAll    = qs('#seSelectAll');
+  var clearSel     = qs('#seClearSelection');
+  var checkList    = qs('#seItemCheckList');
+  var countEl      = qs('#seSelectedCount');
+  var nextBtn      = qs('#seNextToCompose');
+  var backSelBtn   = qs('#seBackToSelect');
+  var previewCount = qs('#sePreviewCount');
+  var sendBtn      = qs('#seEmailSendBtn');
+  var confirmBtn   = qs('#seEmailConfirmBtn');
+  var backCompBtn  = qs('#seEmailBackToCompose');
+  var previewBox   = qs('#sePreviewBox');
+  var saveBtn      = qs('#seSaveCurrentBtn');
+
+  if (!overlay) return;
+
+  var emailTags     = EmailTags('seEmailTagsInner', 'seReportEmailInput', 5);
+  var savedContacts = SavedContacts('seSavedList', emailTags);
+
+  function updateCount() {
+    if (!checkList) return 0;
+    var checked = qsa('input[type="checkbox"]', checkList).filter(function(cb) { return cb.checked; });
+    if (countEl) countEl.textContent = checked.length + ' item(s) selecionado(s)';
+    if (nextBtn) nextBtn.disabled = checked.length === 0;
+    return checked.length;
+  }
+
+  function getSelectedItems() {
+    if (!checkList) return [];
+    return qsa('input[type="checkbox"]', checkList)
+      .filter(function(cb) { return cb.checked; })
+      .map(function(cb) {
+        try { return JSON.parse(cb.value); } catch(e) { return null; }
+      })
+      .filter(Boolean);
+  }
+
+  function resetToSelectStep() {
+    if (selectStep)  selectStep.style.display  = '';
+    if (composeStep) composeStep.style.display = 'none';
+    if (previewStep) previewStep.style.display = 'none';
+  }
+
+  function openDrawer() {
+    overlay.style.display = 'flex';
+    resetToSelectStep();
+  }
+
+  function closeDrawer() {
+    overlay.style.display = 'none';
+    resetToSelectStep();
+  }
+
+  if (openBtn)      openBtn.addEventListener('click', openDrawer);
+  if (closeBtn)     closeBtn.addEventListener('click', closeDrawer);
+  if (closeBtn2)    closeBtn2.addEventListener('click', closeDrawer);
+  if (closePrevBtn) closePrevBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeDrawer(); });
+
+  if (selectAll) selectAll.addEventListener('click', function() {
+    qsa('input[type="checkbox"]', checkList).forEach(function(cb) { cb.checked = true; });
+    updateCount();
+  });
+  if (clearSel) clearSel.addEventListener('click', function() {
+    qsa('input[type="checkbox"]', checkList).forEach(function(cb) { cb.checked = false; });
+    updateCount();
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', function() {
+    var n = getSelectedItems().length;
+    if (previewCount) previewCount.textContent = n + ' item(s) serão incluídos no relatório';
+    if (selectStep)  selectStep.style.display  = 'none';
+    if (composeStep) composeStep.style.display = '';
+    setTimeout(function() {
+      var inp = qs('#seReportEmailInput');
+      if (inp) inp.focus();
+    }, 80);
+  });
+
+  if (backSelBtn) backSelBtn.addEventListener('click', function() {
+    if (composeStep) composeStep.style.display = 'none';
+    if (selectStep)  selectStep.style.display  = '';
+  });
+
+  if (sendBtn) sendBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Informe ao menos um e-mail válido', 'err'); return; }
+    var selected = getSelectedItems();
+    if (!selected.length) { toast('Nenhum item selecionado', 'err'); return; }
+
+    var origHtml = sendBtn.innerHTML;
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Gerando preview...';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        if (!res || !res.sucesso) { toast('Erro ao gerar preview', 'err'); return; }
+
+        var toHtml = emails.map(function(e) { return escHtml(e); }).join(', ');
+        previewBox.innerHTML =
+          '<div style="margin-bottom:10px"><strong>Para:</strong><div class="email-preview-to">'+toHtml+'</div></div>'+
+          '<div class="email-preview-subject">'+escHtml(res.assunto)+'</div>'+
+          '<div id="sePreviewContent" style="margin-top:12px"></div>';
+
+        var contentDiv = qs('#sePreviewContent');
+        if (res.html && res.html.length) {
+          var iframe = document.createElement('iframe');
+          iframe.className = 'email-preview-iframe';
+          iframe.srcdoc = res.html;
+          contentDiv.appendChild(iframe);
+        } else {
+          contentDiv.innerHTML = '<div style="font-size:13px;color:var(--text-muted)">Nenhum item selecionado.</div>';
+        }
+
+        composeStep.style.display = 'none';
+        previewStep.style.display = '';
+      })
+      .withFailureHandler(function(err) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = origHtml;
+        toast('Erro ao gerar preview: '+(err&&err.message?err.message:'falha'), 'err');
+      })
+      .gerarPreviewEmailParaProducao(emails, JSON.stringify(selected));
+  });
+
+  if (saveBtn) saveBtn.addEventListener('click', function() { savedContacts.saveCurrent(); });
+
+  if (backCompBtn) backCompBtn.addEventListener('click', function() {
+    if (previewStep)  previewStep.style.display  = 'none';
+    if (composeStep) composeStep.style.display = '';
+  });
+
+  if (confirmBtn) confirmBtn.addEventListener('click', function() {
+    emailTags.commitInput();
+    var emails = emailTags.getEmails();
+    if (!emails.length) { toast('Nenhum e-mail válido', 'err'); return; }
+    var selected = getSelectedItems();
+    if (!selected.length) { toast('Nenhum item selecionado', 'err'); return; }
+    var orig = confirmBtn.innerHTML;
+    confirmBtn.disabled = true; confirmBtn.textContent = 'Enviando…';
+    var destinatario = emails.join(',');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast(res.mensagem || 'Enviado!', res.sucesso ? 'ok' : 'err');
+        if (res.sucesso) { closeDrawer(); emailTags.clear(); }
+      })
+      .withFailureHandler(function() {
+        confirmBtn.disabled = false; confirmBtn.innerHTML = orig;
+        toast('Erro ao enviar', 'err');
+      })
+      .enviarRelatorioParaProducaoEmail(destinatario, JSON.stringify(selected));
+  });
+
+  /* Render checkboxes whenever SEM_ETIQUETA data loads */
+  _seDrawerRenderCb = function(rows) {
+    if (!checkList) return;
+    checkList.innerHTML = '';
+    if (!rows || !rows.length) {
+      checkList.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">Nenhum item disponível.</span>';
+      if (countEl) countEl.textContent = '0 item(s) selecionado(s)';
+      if (nextBtn) nextBtn.disabled = true;
+      return;
+    }
+    var frag = document.createDocumentFragment();
+    rows.forEach(function(item) {
+      var label = document.createElement('label');
+      label.style.cssText = 'display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = JSON.stringify({ produto: item.produto, caixa: item.caixa });
+      cb.style.flexShrink = '0';
+      cb.addEventListener('change', updateCount);
+      var info = document.createElement('div');
+      info.style.minWidth = '0';
+      info.innerHTML =
+        '<div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(item.produto)+'</div>'+
+        '<div class="caixa-badge" style="margin-top:3px"><svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>'+escHtml(item.caixa||'Sem caixa')+'</div>';
+      label.appendChild(cb);
+      label.appendChild(info);
+      frag.appendChild(label);
+    });
+    checkList.appendChild(frag);
+    updateCount();
+  };
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+THEME.apply(THEME.current);
+MOBILE_VIEW.init();
+initScrollTop();
+initEmailDrawer();
+initValEmailDrawer();
+initSemEtiquetaEmailDrawer();
+ROUTER.init();
+</script>
