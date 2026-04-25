@@ -771,6 +771,19 @@ initScrollTop();
 initEmailDrawer();
 initValEmailDrawer();
 initSemEtiquetaEmailDrawer();
+/* ── Lupa: hide definitively on small screens ──── */
+(function() {
+  function fixLupa() {
+    var col = qs('.home-lupa-col');
+    var layout = qs('.home-layout');
+    var mobile = window.innerWidth < 961;
+    if (col)    col.style.display = mobile ? 'none' : '';
+    if (layout) layout.style.gridTemplateColumns = mobile ? '1fr' : '';
+  }
+  fixLupa();
+  window.addEventListener('resize', fixLupa);
+})();
+
 ROUTER.init();
 applyMobileLayout();
 </script>
