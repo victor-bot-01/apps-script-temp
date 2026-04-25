@@ -119,9 +119,10 @@
   grid-template-columns: 1fr 380px;
   gap: 48px;
   align-items: center;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
+  overflow: hidden;
 }
 
 .home-content-col {
@@ -428,7 +429,7 @@
    ═══════════════════════════════════════════════════ */
 .home-lupa-col {
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; width: 340px;
+  flex-shrink: 1; max-width: 320px;
   animation: fadeSlideIn 0.6s ease 0.2s both;
 }
 .lupa-scene {
@@ -568,10 +569,19 @@
 }
 
 @media (max-width: 960px) {
-  .home-hero { min-height: unset; height: auto; padding-bottom: 32px; }
-  .home-layout { display: block; }
-  .home-content-col { width: 100%; }
   .home-lupa-col { display: none !important; }
+  .home-layout { display: block !important; max-width: 100%; }
+  .home-content-col { width: 100% !important; max-width: 100%; }
+  .home-hero { min-height: unset !important; height: auto !important; padding-bottom: 32px; }
+}
+
+@media (max-width: 768px) {
+  .home-hero { padding-top: 16px !important; min-height: unset !important; }
+  .home-layout { padding: 0 16px 24px; }
+  .home-title { font-size: clamp(28px, 8vw, 40px); }
+  .home-nav-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .nav-card { padding: 14px 12px; }
+  .nav-card-desc { display: none; }
 }
 
 @media (max-width: 640px) {
@@ -580,5 +590,10 @@
   .nav-card-icon svg { width: 28px; height: 28px; }
   .nav-card-title { font-size: 15px; }
   .nav-card-desc { display: none; }
+}
+
+@media (max-width: 480px) {
+  .home-hero { padding-top: 8px !important; }
+  .home-layout { padding: 0 12px 20px; }
 }
 </style>

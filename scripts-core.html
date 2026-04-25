@@ -125,6 +125,44 @@ var MOBILE_VIEW = {
 };
 
 /* ═══════════════════════════════════════════════════
+   MOBILE LAYOUT FALLBACK
+   ═══════════════════════════════════════════════════ */
+function applyMobileLayout() {
+  var w = window.innerWidth || document.documentElement.clientWidth;
+  var isMobile = w < 960;
+  var lupaCol = qs('.home-lupa-col');
+  var homeLayout = qs('.home-layout');
+  var homeHero = qs('.home-hero');
+  var mobNav = qs('.mob-nav-bar');
+
+  if (lupaCol) lupaCol.style.display = isMobile ? 'none' : '';
+  if (homeLayout && isMobile) {
+    homeLayout.style.display = 'block';
+  } else if (homeLayout) {
+    homeLayout.style.display = '';
+  }
+  if (homeHero && isMobile) {
+    homeHero.style.minHeight = 'unset';
+    homeHero.style.height = 'auto';
+  } else if (homeHero) {
+    homeHero.style.minHeight = '';
+    homeHero.style.height = '';
+  }
+  if (mobNav) mobNav.style.display = isMobile ? '' : 'none';
+
+  var isVeryNarrow = w < 640;
+  var valGrid = qs('#val-results');
+  if (valGrid && isVeryNarrow) {
+    valGrid.style.gridTemplateColumns = '1fr';
+  } else if (valGrid) {
+    valGrid.style.gridTemplateColumns = '';
+  }
+}
+
+applyMobileLayout();
+window.addEventListener('resize', applyMobileLayout);
+
+/* ═══════════════════════════════════════════════════
    SHORTCUTS OVERLAY
    ═══════════════════════════════════════════════════ */
 var OVERLAY = {
