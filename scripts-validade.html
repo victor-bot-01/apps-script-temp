@@ -776,7 +776,7 @@ initSemEtiquetaEmailDrawer();
   function fixLupa() {
     var col = qs('.home-lupa-col');
     var layout = qs('.home-layout');
-    var mobile = window.innerWidth < 961;
+    var mobile = window.innerWidth < 1101;
     if (col)    col.style.display = mobile ? 'none' : '';
     if (layout) layout.style.gridTemplateColumns = mobile ? '1fr' : '';
   }
