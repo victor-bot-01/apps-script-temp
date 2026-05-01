@@ -108,6 +108,59 @@
 
   </div>
 
+  <!-- Drawer e-mail validade -->
+  <div id="val-email-drawer" class="email-drawer" aria-hidden="true" style="display:none">
+    <div class="email-drawer-overlay" id="val-email-overlay"></div>
+    <div class="email-drawer-panel">
+
+      <div class="email-drawer-header">
+        <div class="email-drawer-title">Relatório de Validade</div>
+        <button class="email-drawer-close" id="val-email-close" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Step 1: Selecionar itens -->
+      <div id="val-email-step1" class="email-drawer-step">
+        <div class="email-drawer-section-label">Selecione os produtos para incluir no relatório</div>
+        <div class="email-drawer-actions-row">
+          <button class="small-btn" id="val-sel-all">Selecionar tudo</button>
+          <button class="small-btn" id="val-sel-none">Limpar</button>
+          <button class="small-btn" id="val-sel-criticos">Só críticos/vencidos</button>
+        </div>
+        <div id="val-email-list" class="email-item-list"></div>
+        <div class="email-drawer-footer">
+          <span id="val-sel-count" class="email-sel-count">0 selecionados</span>
+          <button class="primary-btn" id="val-email-next1" disabled>Próximo →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Destinatário -->
+      <div id="val-email-step2" class="email-drawer-step" style="display:none">
+        <div class="email-drawer-section-label">Destinatário</div>
+        <input type="email" id="val-email-dest" class="email-input" placeholder="email@exemplo.com" autocomplete="off">
+        <div class="email-drawer-footer">
+          <button class="ghost-btn" id="val-email-back1">← Voltar</button>
+          <button class="primary-btn" id="val-email-preview-btn">Ver Preview</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Preview -->
+      <div id="val-email-step3" class="email-drawer-step" style="display:none">
+        <div class="email-drawer-section-label">Preview do e-mail</div>
+        <div id="val-email-preview-box" class="email-preview-box">Carregando…</div>
+        <div class="email-drawer-footer">
+          <button class="ghost-btn" id="val-email-back2">← Voltar</button>
+          <button class="primary-btn" id="val-email-send-final">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Email drawer (multi-recipient + saved contacts + preview) -->
   <div class="email-overlay" id="valEmailOverlay"
        role="dialog" aria-modal="true"

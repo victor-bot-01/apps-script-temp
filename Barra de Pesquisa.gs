@@ -243,98 +243,57 @@ function gerarPreviewEmailIndisponiveis(destinatarios) {
   return { sucesso: true, html: html, assunto: assunto, total: inativos.length };
 }
 
-function gerarPreviewEmailValidade(destinatarios) {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Validade');
-  if (!sheet) return { sucesso: true, html: '', assunto: '', vencidos: 0, criticos: 0 };
-
-  var rows     = sheet.getDataRange().getValues();
-  var vencidos = [];
-  var criticos = [];
-
-  for (var i = 1; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r[1]) continue;
-    var item = {
-      produto:  String(r[1]  || ''),
-      validade: String(r[5]  || ''),
-      dias:     Number(r[6]) || 0,
-      estoque:  String(r[9]  || '')
-    };
-    if (item.dias < 0)        vencidos.push(item);
-    else if (item.dias <= 30) criticos.push(item);
-  }
-
-  if (!vencidos.length && !criticos.length)
-    return { sucesso: true, html: '', assunto: '', vencidos: 0, criticos: 0 };
-
+function gerarPreviewEmailValidade(destinatario, produtos) {
   var tz  = Session.getScriptTimeZone();
   var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
 
-  function tableRows(list, cor) {
-    var out = '';
+  var vencidos = produtos.filter(function(p){ return p.dias !== null && p.dias < 0; });
+  var criticos = produtos.filter(function(p){ return p.dias !== null && p.dias >= 0 && p.dias <= 30; });
+  var atencao  = produtos.filter(function(p){ return p.dias !== null && p.dias > 30 && p.dias <= 90; });
+  var ok       = produtos.filter(function(p){ return p.dias === null || p.dias > 90; });
+
+  var linhas = '';
+  function linhasSection(title, list, cor) {
+    if (!list.length) return '';
+    var out = '<tr><td colspan="4" style="padding:10px 8px 4px;font-weight:700;color:' + cor + ';font-size:12px">' + title + ' (' + list.length + ')</td></tr>';
     for (var k = 0; k < list.length; k++) {
-      var p  = list[k];
-      var bg = (k % 2 === 0) ? '#fafafa' : '#ffffff';
-      out += '<tr style="background:' + bg + '">' +
-        '<td style="padding:8px 10px;color:#333">' + p.produto + '</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.validade + '</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:' + cor + ';font-weight:700">' + p.dias + 'd</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.estoque + '</td>' +
-        '</tr>';
+      var p = list[k];
+      var diasStr = p.dias === null ? '—' : p.dias + 'd';
+      out += '<tr style="background:' + (k%2===0?'#fafafa':'#fff') + '">' +
+             '<td style="padding:6px 8px;color:#333">' + (p.produto||'') + '</td>' +
+             '<td style="padding:6px 8px;color:#555">' + (p.lote?'Lote '+p.lote:'—') + '</td>' +
+             '<td style="padding:6px 8px;color:#555">' + (p.validade||'—') + '</td>' +
+             '<td style="padding:6px 8px;color:' + cor + ';font-weight:700">' + diasStr + '</td>' +
+             '</tr>';
     }
     return out;
   }
 
-  var html =
-    '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#f4f4f4;padding:20px">' +
-      '<div style="background:#071a0b;border-radius:12px;padding:24px;margin-bottom:20px">' +
-        '<h1 style="margin:0 0 6px;font-size:22px;color:#00e676">Essência do Brasil</h1>' +
-        '<p style="margin:0;font-size:11px;color:rgba(0,230,118,0.6);letter-spacing:1px">RELATÓRIO DE VALIDADE — ' + now + '</p>' +
-      '</div>';
+  linhas += linhasSection('Vencidos', vencidos, '#c62828');
+  linhas += linhasSection('Críticos', criticos, '#e65100');
+  linhas += linhasSection('Atenção', atencao, '#f57f17');
+  linhas += linhasSection('OK', ok, '#2e7d32');
 
-  if (vencidos.length) {
-    html +=
-      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #c62828">' +
-        '<h2 style="color:#c62828;margin:0 0 14px;font-size:16px">&#9888; Vencidos (' + vencidos.length + ')</h2>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<tr style="background:#ffebee">' +
-            '<th style="text-align:left;padding:8px 10px;color:#c62828">Produto</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Validade</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Dias</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Estoque</th>' +
-          '</tr>' +
-          tableRows(vencidos, '#c62828') +
-        '</table>' +
-      '</div>';
-  }
-
-  if (criticos.length) {
-    html +=
-      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #e65100">' +
-        '<h2 style="color:#e65100;margin:0 0 14px;font-size:16px">&#9888; Críticos — vence em até 30 dias (' + criticos.length + ')</h2>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<tr style="background:#fff3e0">' +
-            '<th style="text-align:left;padding:8px 10px;color:#e65100">Produto</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Validade</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Dias</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Estoque</th>' +
-          '</tr>' +
-          tableRows(criticos, '#e65100') +
-        '</table>' +
-      '</div>';
-  }
-
-  html +=
-      '<div style="text-align:center;padding:16px;color:#aaa;font-size:11px">' +
-        'Gerado automaticamente pelo Sistema de Gestão Essência do Brasil' +
-      '</div>' +
+  var preview =
+    '<div style="font-family:Arial,sans-serif;font-size:13px">' +
+    '<div style="background:#071a0b;border-radius:8px;padding:16px;margin-bottom:12px">' +
+      '<div style="color:#00e676;font-size:16px;font-weight:700">Essência do Brasil</div>' +
+      '<div style="color:rgba(0,230,118,0.6);font-size:10px;letter-spacing:1px">RELATÓRIO DE VALIDADE — ' + now + '</div>' +
+    '</div>' +
+    '<div style="margin-bottom:8px;color:#555">Para: <strong>' + (destinatario||'—') + '</strong></div>' +
+    '<table style="width:100%;border-collapse:collapse">' +
+      '<tr style="background:#f0f0f0">' +
+        '<th style="text-align:left;padding:6px 8px">Produto</th>' +
+        '<th style="padding:6px 8px">Lote</th>' +
+        '<th style="padding:6px 8px">Validade</th>' +
+        '<th style="padding:6px 8px">Dias</th>' +
+      '</tr>' +
+      linhas +
+    '</table>' +
+    '<div style="margin-top:12px;color:#aaa;font-size:11px;text-align:center">' + produtos.length + ' produto(s) selecionado(s)</div>' +
     '</div>';
 
-  var assunto = 'Essência do Brasil – Relatório de Validade · ' +
-    vencidos.length + ' vencido(s) · ' + criticos.length + ' crítico(s) · ' + now;
-
-  return { sucesso: true, html: html, assunto: assunto, vencidos: vencidos.length, criticos: criticos.length };
+  return { html: preview };
 }
 
 function syncInativosFromInventario() {
@@ -381,104 +340,68 @@ function syncInativosFromInventario() {
   return { sucesso: true, adicionados: adicionados };
 }
 
-function enviarRelatorioValidadeEmail(destinatario) {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Validade');
-  if (!sheet) return { sucesso: false, mensagem: 'Aba "Validade" não encontrada.' };
-
-  var rows     = sheet.getDataRange().getValues();
-  var vencidos = [];
-  var criticos = [];
-
-  for (var i = 1; i < rows.length; i++) {
-    var r = rows[i];
-    if (!r[1]) continue;
-    var item = {
-      produto:  String(r[1]  || ''),
-      validade: String(r[5]  || ''),
-      dias:     Number(r[6]) || 0,
-      estoque:  String(r[9]  || '')
-    };
-    if (item.dias < 0)        vencidos.push(item);
-    else if (item.dias <= 30) criticos.push(item);
-  }
-
-  if (!vencidos.length && !criticos.length) {
-    return { sucesso: true, mensagem: 'Nenhum produto crítico ou vencido para reportar.' };
-  }
-
+function enviarRelatorioValidadeEmail(destinatario, produtos) {
   var tz  = Session.getScriptTimeZone();
   var now = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+
+  var vencidos = produtos.filter(function(p){ return p.dias !== null && p.dias < 0; });
+  var criticos = produtos.filter(function(p){ return p.dias !== null && p.dias >= 0 && p.dias <= 30; });
+  var atencao  = produtos.filter(function(p){ return p.dias !== null && p.dias > 30 && p.dias <= 90; });
+  var ok       = produtos.filter(function(p){ return p.dias === null || p.dias > 90; });
 
   function tableRows(list, cor) {
     var out = '';
     for (var k = 0; k < list.length; k++) {
       var p  = list[k];
       var bg = (k % 2 === 0) ? '#fafafa' : '#ffffff';
+      var diasStr = p.dias === null ? '—' : p.dias + 'd';
       out += '<tr style="background:' + bg + '">' +
-        '<td style="padding:8px 10px;color:#333">' + p.produto + '</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.validade + '</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:' + cor + ';font-weight:700">' + p.dias + 'd</td>' +
-        '<td style="padding:8px 10px;text-align:center;color:#555">' + p.estoque + '</td>' +
-        '</tr>';
+             '<td style="padding:8px 10px;color:#333">' + (p.produto||'') + '</td>' +
+             '<td style="padding:8px 10px;color:#555">' + (p.lote ? 'Lote '+p.lote : '—') + '</td>' +
+             '<td style="padding:8px 10px;text-align:center;color:#555">' + (p.validade||'—') + '</td>' +
+             '<td style="padding:8px 10px;text-align:center;color:' + cor + ';font-weight:700">' + diasStr + '</td>' +
+             '</tr>';
     }
     return out;
   }
 
+  function section(title, list, borderCor, headerCor, rowCor) {
+    if (!list.length) return '';
+    return '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid ' + borderCor + '">' +
+      '<h2 style="color:' + headerCor + ';margin:0 0 14px;font-size:16px">' + title + ' (' + list.length + ')</h2>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<tr style="background:#f5f5f5">' +
+          '<th style="text-align:left;padding:8px 10px;color:' + headerCor + '">Produto</th>' +
+          '<th style="padding:8px 10px;color:' + headerCor + '">Lote</th>' +
+          '<th style="padding:8px 10px;color:' + headerCor + '">Validade</th>' +
+          '<th style="padding:8px 10px;color:' + headerCor + '">Dias</th>' +
+        '</tr>' +
+        tableRows(list, rowCor) +
+      '</table></div>';
+  }
+
   var html =
     '<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;background:#f4f4f4;padding:20px">' +
-      '<div style="background:#071a0b;border-radius:12px;padding:24px;margin-bottom:20px">' +
-        '<h1 style="margin:0 0 6px;font-size:22px;color:#00e676">Essência do Brasil</h1>' +
-        '<p style="margin:0;font-size:11px;color:rgba(0,230,118,0.6);letter-spacing:1px">RELATÓRIO DE VALIDADE — ' + now + '</p>' +
-      '</div>';
-
-  if (vencidos.length) {
-    html +=
-      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #c62828">' +
-        '<h2 style="color:#c62828;margin:0 0 14px;font-size:16px">&#9888; Vencidos (' + vencidos.length + ')</h2>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<tr style="background:#ffebee">' +
-            '<th style="text-align:left;padding:8px 10px;color:#c62828">Produto</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Validade</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Dias</th>' +
-            '<th style="padding:8px 10px;color:#c62828">Estoque</th>' +
-          '</tr>' +
-          tableRows(vencidos, '#c62828') +
-        '</table>' +
-      '</div>';
-  }
-
-  if (criticos.length) {
-    html +=
-      '<div style="background:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #e65100">' +
-        '<h2 style="color:#e65100;margin:0 0 14px;font-size:16px">&#9888; Críticos — vence em até 30 dias (' + criticos.length + ')</h2>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<tr style="background:#fff3e0">' +
-            '<th style="text-align:left;padding:8px 10px;color:#e65100">Produto</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Validade</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Dias</th>' +
-            '<th style="padding:8px 10px;color:#e65100">Estoque</th>' +
-          '</tr>' +
-          tableRows(criticos, '#e65100') +
-        '</table>' +
-      '</div>';
-  }
-
-  html +=
-      '<div style="text-align:center;padding:16px;color:#aaa;font-size:11px">' +
-        'Gerado automaticamente pelo Sistema de Gestão Essência do Brasil' +
-      '</div>' +
+    '<div style="background:#071a0b;border-radius:12px;padding:24px;margin-bottom:20px">' +
+      '<h1 style="margin:0 0 6px;font-size:22px;color:#00e676">Essência do Brasil</h1>' +
+      '<p style="margin:0;font-size:11px;color:rgba(0,230,118,0.6);letter-spacing:1px">RELATÓRIO DE VALIDADE — ' + now + '</p>' +
+    '</div>' +
+    section('&#9888; Vencidos', vencidos, '#c62828', '#c62828', '#c62828') +
+    section('&#9888; Críticos (≤30 dias)', criticos, '#e65100', '#e65100', '#e65100') +
+    section('Atenção (31–90 dias)', atencao, '#f9a825', '#f57f17', '#e65100') +
+    section('OK', ok, '#2e7d32', '#2e7d32', '#2e7d32') +
+    '<div style="text-align:center;padding:16px;color:#aaa;font-size:11px">Gerado pelo Sistema de Gestão Essência do Brasil</div>' +
     '</div>';
 
-  var subject = 'Essência do Brasil – Relatório de Validade · ' +
-    vencidos.length + ' vencido(s) · ' + criticos.length + ' crítico(s) · ' + now;
+  var subject = '[Essência do Brasil] Validade — ' + vencidos.length + ' vencido(s) · ' +
+                criticos.length + ' crítico(s) · ' + now;
 
-  var recipients = destinatario.split(',').map(function(e) { return e.trim(); }).filter(Boolean);
-  recipients.forEach(function(email) {
-    MailApp.sendEmail({ to: email, subject: subject, htmlBody: html });
-  });
+  GmailApp.sendEmail(destinatario, subject,
+    'Este e-mail requer suporte a HTML.',
+    { htmlBody: html }
+  );
 
-  return { sucesso: true, mensagem: 'Relatório de validade enviado para ' + recipients.join(', ') };
+  return { sucesso: true, mensagem: 'Relatório enviado para ' + destinatario + ' (' + produtos.length + ' produto(s)).' };
 }
 
 function enviarRelatorioInativo() {
@@ -670,7 +593,7 @@ function getValidadeData() {
       etiqueta:        String(r[3]  || ""),
       lote:            String(r[4]  || ""),
       validade:        String(r[5]  || ""),
-      diasRestantes:   Number(r[6]) || 0,
+      diasRestantes:   (r[6] !== '' && r[6] !== null && r[6] !== undefined) ? Number(r[6]) : null,
       status:          String(r[7]  || ""),
       precisaProduzir: String(r[8]  || ""),
       estoque:         String(r[9]  || ""),

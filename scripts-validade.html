@@ -55,8 +55,8 @@ var VAL = {
   updateSummary: function() {
     if (!VAL.data) return;
     var total   = VAL.data.length;
-    var atencao = VAL.data.filter(function(r){ return r.diasRestantes >= 0 && r.diasRestantes <= 90; }).length;
-    var critico = VAL.data.filter(function(r){ return r.diasRestantes < 0; }).length;
+    var atencao = VAL.data.filter(function(r){ return r.diasRestantes !== null && r.diasRestantes >= 0 && r.diasRestantes <= 90; }).length;
+    var critico = VAL.data.filter(function(r){ return r.diasRestantes !== null && r.diasRestantes < 0; }).length;
     var te = qs('#val-total'), ae = qs('#val-atencao'), ce = qs('#val-critico');
     if (te) te.textContent = total;
     if (ae) ae.textContent = atencao;
@@ -81,7 +81,7 @@ var VAL = {
     if (!VAL.data) return;
     var q = VAL.filterQuery.toLowerCase().trim(), st = VAL.filterStatus;
     var result = VAL.data.filter(function(r) {
-      if (VAL._hideVencidos && r.diasRestantes < 0) return false;
+      if (VAL._hideVencidos && r.diasRestantes !== null && r.diasRestantes < 0) return false;
       if (q && q.length >= 2 && r.produto.toLowerCase().indexOf(q) === -1) return false;
       if (st !== 'all') {
         var s = (r.status||'').toLowerCase();
@@ -94,8 +94,16 @@ var VAL = {
     });
     var sm = VAL.sortMode;
     result = result.slice().sort(function(a,b) {
-      if (sm==='nearest'||sm==='days') return a.diasRestantes - b.diasRestantes;
-      if (sm==='farthest') return b.diasRestantes - a.diasRestantes;
+      if (sm==='nearest'||sm==='days') {
+        if (a.diasRestantes === null) return 1;
+        if (b.diasRestantes === null) return -1;
+        return a.diasRestantes - b.diasRestantes;
+      }
+      if (sm==='farthest') {
+        if (a.diasRestantes === null) return 1;
+        if (b.diasRestantes === null) return -1;
+        return b.diasRestantes - a.diasRestantes;
+      }
       if (sm==='name') return (a.produto||'').localeCompare(b.produto||'');
       return 0;
     });
@@ -108,8 +116,20 @@ var VAL = {
     if (el) el.innerHTML = 'Mostrando <strong>'+VAL.filtered.length+'</strong> de <strong>'+(VAL.data?VAL.data.length:0)+'</strong> produtos';
   },
 
-  getCardClass:   function(dias) { if (dias<0) return 'danger'; if (dias<=30) return 'warning'; if (dias<=90) return 'caution'; return 'ok'; },
-  getDiasClass:   function(dias) { if (dias<0) return 'dias-crit'; if (dias<=30) return 'dias-warn'; if (dias<=90) return 'dias-caution'; return 'dias-ok'; },
+  getCardClass: function(dias) {
+    if (dias === null) return 'sem-data';
+    if (dias < 0)   return 'danger';
+    if (dias <= 30) return 'warning';
+    if (dias <= 90) return 'caution';
+    return 'ok';
+  },
+  getDiasClass: function(dias) {
+    if (dias === null) return '';
+    if (dias < 0)   return 'dias-crit';
+    if (dias <= 30) return 'dias-warn';
+    if (dias <= 90) return 'dias-caution';
+    return 'dias-ok';
+  },
   getStatusClass: function(status) {
     var s = (status||'').toLowerCase();
     if (s === 'ok') return 'badge-ok';
@@ -131,30 +151,157 @@ var VAL = {
       card.style.animationDelay = Math.min(i*30,300)+'ms';
       var dias = r.diasRestantes;
       var diasClass = VAL.getDiasClass(dias);
-      var diasLabel = dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes';
-      var badges = '';
-      if (r.status) badges += '<span class="badge '+VAL.getStatusClass(r.status)+'">'+escHtml(r.status)+'</span>';
-      if (r.estoque) {
-        var ec = r.estoque.toUpperCase()==='TEMOS' ? 'badge-temos' : 'badge-falta';
-        badges += '<span class="badge '+ec+'">'+escHtml(r.estoque)+'</span>';
-      }
-      if (r.precisaProduzir && r.precisaProduzir.toUpperCase() !== 'NÃO' && r.precisaProduzir !== '') {
-        badges += '<span class="badge badge-produzir">Produzir: '+escHtml(r.precisaProduzir)+'</span>';
-      }
-      var obs     = r.observacao ? '<div class="val-obs">'+escHtml(r.observacao)+'</div>' : '';
-      var loteEta = (r.lote ? 'Lote '+escHtml(r.lote) : '')+(r.lote&&r.etiqueta?' · ':'')+(r.etiqueta ? 'Etiq. '+escHtml(r.etiqueta) : '');
+      var diasLabel = dias === null ? 'Sem prazo' : (dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes');
+      var statusBadge = r.status ? '<span class="badge '+VAL.getStatusClass(r.status)+'">'+escHtml(r.status)+'</span>' : '';
+      var loteStr = r.lote ? 'Lote '+escHtml(r.lote) : '';
       card.innerHTML =
         '<div class="val-card-header">'+
           '<div class="val-prod-name">'+escHtml(r.produto)+'</div>'+
           '<span class="val-dias-badge '+diasClass+'">'+diasLabel+'</span>'+
         '</div>'+
         '<div class="val-date">'+escHtml(fmtDate(r.validade)||r.validade)+'</div>'+
-        (loteEta ? '<div class="val-lote-eta">'+loteEta+'</div>' : '')+
-        (badges  ? '<div class="val-badges">'+badges+'</div>' : '')+
-        obs;
+        (loteStr     ? '<div class="val-lote-eta">'+loteStr+'</div>' : '')+
+        (statusBadge ? '<div class="val-badges">'+statusBadge+'</div>' : '');
       frag.appendChild(card);
     });
     grid.innerHTML = ''; grid.appendChild(frag);
+  },
+
+  initEmailDrawer: function() {
+    var drawer   = qs('#val-email-drawer');
+    var overlay  = qs('#val-email-overlay');
+    var closeBtn = qs('#val-email-close');
+    var step1    = qs('#val-email-step1');
+    var step2    = qs('#val-email-step2');
+    var step3    = qs('#val-email-step3');
+    var list     = qs('#val-email-list');
+    var selCount = qs('#val-sel-count');
+    var next1    = qs('#val-email-next1');
+    var destInput= qs('#val-email-dest');
+    var previewBox= qs('#val-email-preview-box');
+
+    if (!drawer) return;
+
+    function openDrawer() {
+      drawer.setAttribute('aria-hidden','false');
+      drawer.style.display = '';
+      requestAnimationFrame(function(){ drawer.classList.add('open'); });
+      buildList();
+      showStep(1);
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      setTimeout(function(){ drawer.style.display = 'none'; drawer.setAttribute('aria-hidden','true'); }, 280);
+    }
+
+    function showStep(n) {
+      step1.style.display = n===1 ? '' : 'none';
+      step2.style.display = n===2 ? '' : 'none';
+      step3.style.display = n===3 ? '' : 'none';
+    }
+
+    function buildList() {
+      if (!list) return;
+      var data = VAL.filtered && VAL.filtered.length ? VAL.filtered : (VAL.data || []);
+      list.innerHTML = '';
+      data.forEach(function(r, i) {
+        var dias = r.diasRestantes;
+        var diasLabel = dias === null ? 'Sem prazo' : (dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes');
+        var cls = dias === null ? '' : (dias < 0 ? 'item-danger' : dias <= 30 ? 'item-warning' : dias <= 90 ? 'item-caution' : '');
+        var row = document.createElement('label');
+        row.className = 'email-item-row ' + cls;
+        row.innerHTML =
+          '<input type="checkbox" class="val-email-chk" data-idx="'+i+'" checked> ' +
+          '<span class="email-item-name">'+escHtml(r.produto)+'</span>' +
+          (r.lote ? ' <span class="email-item-meta">Lote '+escHtml(r.lote)+'</span>' : '') +
+          ' <span class="email-item-dias">'+diasLabel+'</span>';
+        list.appendChild(row);
+      });
+      updateCount();
+    }
+
+    function updateCount() {
+      var chks = qsa('.val-email-chk:checked', list);
+      if (selCount) selCount.textContent = chks.length + ' selecionados';
+      if (next1) next1.disabled = chks.length === 0;
+    }
+
+    function getSelectedItems() {
+      var data = VAL.filtered && VAL.filtered.length ? VAL.filtered : (VAL.data || []);
+      var chks = qsa('.val-email-chk:checked', list);
+      return Array.prototype.map.call(chks, function(chk) {
+        var r = data[Number(chk.dataset.idx)];
+        return { produto: r.produto, lote: r.lote||'', validade: r.validade||'', dias: r.diasRestantes };
+      });
+    }
+
+    if (list) list.addEventListener('change', updateCount);
+
+    var selAllBtn  = qs('#val-sel-all');
+    var selNoneBtn = qs('#val-sel-none');
+    var selCritBtn = qs('#val-sel-criticos');
+    var back1Btn   = qs('#val-email-back1');
+    var previewBtn = qs('#val-email-preview-btn');
+    var back2Btn   = qs('#val-email-back2');
+    var sendBtn    = qs('#val-email-send-final');
+
+    if (selAllBtn)  selAllBtn.addEventListener('click', function() { qsa('.val-email-chk', list).forEach(function(c){ c.checked=true; }); updateCount(); });
+    if (selNoneBtn) selNoneBtn.addEventListener('click', function() { qsa('.val-email-chk', list).forEach(function(c){ c.checked=false; }); updateCount(); });
+    if (selCritBtn) selCritBtn.addEventListener('click', function() {
+      var data = VAL.filtered && VAL.filtered.length ? VAL.filtered : (VAL.data || []);
+      qsa('.val-email-chk', list).forEach(function(c) {
+        var r = data[Number(c.dataset.idx)];
+        c.checked = r.diasRestantes !== null && r.diasRestantes <= 30;
+      });
+      updateCount();
+    });
+
+    if (next1)    next1.addEventListener('click', function() { showStep(2); });
+    if (back1Btn) back1Btn.addEventListener('click', function() { showStep(1); });
+
+    if (previewBtn) previewBtn.addEventListener('click', function() {
+      var dest = destInput ? destInput.value.trim() : '';
+      if (!dest) { toast('Informe o destinatário','err'); return; }
+      var items = getSelectedItems();
+      if (previewBox) previewBox.innerHTML = 'Carregando preview…';
+      showStep(3);
+      google.script.run
+        .withSuccessHandler(function(res) { if (previewBox && res && res.html) previewBox.innerHTML = res.html; })
+        .withFailureHandler(function(err) { if (previewBox) previewBox.innerHTML = 'Erro ao gerar preview.'; })
+        .gerarPreviewEmailValidade(dest, items);
+    });
+
+    if (back2Btn) back2Btn.addEventListener('click', function() { showStep(2); });
+
+    if (sendBtn) sendBtn.addEventListener('click', function() {
+      var dest  = destInput ? destInput.value.trim() : '';
+      var items = getSelectedItems();
+      if (!dest)         { toast('Informe o destinatário','err'); return; }
+      if (!items.length) { toast('Selecione ao menos um item','err'); return; }
+      sendBtn.disabled = true; sendBtn.textContent = 'Enviando…';
+      google.script.run
+        .withSuccessHandler(function(res) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar';
+          toast(res && res.mensagem ? res.mensagem : 'Relatório enviado!', 'ok');
+          closeDrawer();
+        })
+        .withFailureHandler(function(err) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar';
+          toast('Erro: '+(err&&err.message?err.message:'falha ao enviar'),'err');
+        })
+        .enviarRelatorioValidadeEmail(dest, items);
+    });
+
+    if (overlay)  overlay.addEventListener('click', closeDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+    var emailBtn = qs('#valEmailReportBtn');
+    if (emailBtn) {
+      emailBtn.addEventListener('click', openDrawer);
+    }
   },
 
   init: function() {
@@ -187,6 +334,7 @@ var VAL = {
       var toggleBtn = qs('#val-toggle-inativo');
       if (toggleBtn) toggleBtn.addEventListener('click', VAL.toggleVencidos);
     }
+    VAL.initEmailDrawer();
     VAL.loadData(false);
   },
 
@@ -769,21 +917,7 @@ THEME.apply(THEME.current);
 MOBILE_VIEW.init();
 initScrollTop();
 initEmailDrawer();
-initValEmailDrawer();
 initSemEtiquetaEmailDrawer();
-/* ── Lupa: hide definitively on small screens ──── */
-(function() {
-  function fixLupa() {
-    var col = qs('.home-lupa-col');
-    var layout = qs('.home-layout');
-    var mobile = window.innerWidth < 1101;
-    if (col)    col.style.display = mobile ? 'none' : '';
-    if (layout) layout.style.gridTemplateColumns = mobile ? '1fr' : '';
-  }
-  fixLupa();
-  window.addEventListener('resize', fixLupa);
-})();
-
 ROUTER.init();
 applyMobileLayout();
 </script>

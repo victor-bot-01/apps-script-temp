@@ -130,12 +130,10 @@ var MOBILE_VIEW = {
 function applyMobileLayout() {
   var w = window.innerWidth || document.documentElement.clientWidth;
   var isMobile = w < 960;
-  var lupaCol = qs('.home-lupa-col');
   var homeLayout = qs('.home-layout');
   var homeHero = qs('.home-hero');
   var mobNav = qs('.mob-nav-bar');
 
-  if (lupaCol) lupaCol.style.display = isMobile ? 'none' : '';
   if (homeLayout && isMobile) {
     homeLayout.style.display = 'block';
   } else if (homeLayout) {
@@ -292,69 +290,6 @@ var HOME_PARTICLES = {
 };
 
 /* ═══════════════════════════════════════════════════
-   LUPA CANVAS
-   ═══════════════════════════════════════════════════ */
-var LUPA_CANVAS = {
-  animId: null,
-  haloTimer: null,
-
-  init: function() {
-    if (LUPA_CANVAS.animId) return;
-    var canvas = qs('#lupaCanvas');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var W = 320, H = 320, cx = 160, cy = 160;
-    var pts = [];
-    var radii = [90, 104, 118, 130, 144, 156];
-    for (var ring = 0; ring < 6; ring++) {
-      var dotsPerRing = 2 + (ring % 3);
-      for (var d = 0; d < dotsPerRing; d++) {
-        pts.push({
-          angle: (Math.PI * 2 * d) / dotsPerRing + ring * 0.52,
-          r: radii[ring],
-          spd: (ring % 2 === 0 ? 1 : -1) * (0.003 + ring * 0.0015),
-          sz: 1.2 + (ring % 3) * 0.6,
-          al: 0.35 + (ring % 4) * 0.12
-        });
-      }
-    }
-    function getRgb() {
-      return document.documentElement.dataset.theme === 'dark' ? '0,230,118' : '46,125,50';
-    }
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      var rgb = getRgb();
-      pts.forEach(function(p) {
-        p.angle += p.spd;
-        var x = cx + Math.cos(p.angle) * p.r;
-        var y = cy + Math.sin(p.angle) * p.r * 0.42;
-        ctx.beginPath();
-        ctx.arc(x, y, p.sz, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + rgb + ',' + p.al + ')';
-        ctx.fill();
-      });
-      LUPA_CANVAS.animId = requestAnimationFrame(draw);
-    }
-    draw();
-
-    var halo = qs('#lupaHalo');
-    if (halo) {
-      var haloPhase = 0;
-      LUPA_CANVAS.haloTimer = setInterval(function() {
-        haloPhase += 0.06;
-        var op = 0.65 + Math.sin(haloPhase) * 0.25;
-        halo.style.opacity = op.toFixed(2);
-      }, 40);
-    }
-  },
-
-  destroy: function() {
-    if (LUPA_CANVAS.animId) { cancelAnimationFrame(LUPA_CANVAS.animId); LUPA_CANVAS.animId = null; }
-    if (LUPA_CANVAS.haloTimer) { clearInterval(LUPA_CANVAS.haloTimer); LUPA_CANVAS.haloTimer = null; }
-  }
-};
-
-/* ═══════════════════════════════════════════════════
    HOME
    ═══════════════════════════════════════════════════ */
 var HOME = {
@@ -383,12 +318,10 @@ var HOME = {
   init: function() {
     HOME.startClock();
     HOME_PARTICLES.init();
-    LUPA_CANVAS.init();
   },
   destroy: function() {
     clearInterval(HOME.clockTimer);
     HOME_PARTICLES.destroy();
-    LUPA_CANVAS.destroy();
   }
 };
 
