@@ -121,39 +121,43 @@
 
       <!-- Step 1: Selecionar itens -->
       <div id="val-email-step1" class="email-drawer-step">
-        <div class="email-drawer-section-label">Selecione os produtos para incluir no relatório</div>
-        <div class="email-drawer-actions-row">
-          <button class="small-btn" id="val-sel-all">Selecionar tudo</button>
-          <button class="small-btn" id="val-sel-none">Limpar</button>
-          <button class="small-btn" id="val-sel-criticos">Só críticos/vencidos</button>
+        <div class="email-drawer-body">
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button class="small-btn" id="val-sel-all" type="button">Selecionar tudo</button>
+            <button class="small-btn" id="val-sel-none" type="button">Limpar</button>
+            <button class="small-btn" id="val-sel-criticos" type="button">Só críticos/vencidos</button>
+          </div>
+          <div id="val-email-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+          <div id="val-sel-count" style="margin-top:10px;font-size:12px;color:var(--text-muted)">0 selecionados</div>
         </div>
-        <div id="val-email-list" class="email-item-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
         <div class="email-drawer-footer">
-          <span id="val-sel-count" class="email-sel-count">0 selecionados</span>
-          <button class="primary-btn" id="val-email-next1" disabled>Próximo →</button>
+          <button class="email-send-btn" id="val-email-next1" disabled>Próximo →</button>
         </div>
       </div>
 
       <!-- Step 2: Destinatário -->
       <div id="val-email-step2" class="email-drawer-step" style="display:none">
-        <div class="email-drawer-section-label">Destinatário</div>
-        <input type="email" id="val-email-dest" class="email-input" placeholder="email@exemplo.com" autocomplete="off">
+        <div class="email-drawer-body">
+          <label class="email-field-lbl">Destinatário</label>
+          <input type="email" id="val-email-dest" class="email-input" placeholder="email@exemplo.com" autocomplete="off">
+        </div>
         <div class="email-drawer-footer">
-          <button class="ghost-btn" id="val-email-back1">← Voltar</button>
-          <button class="primary-btn" id="val-email-preview-btn">Ver Preview</button>
+          <button class="email-send-btn" id="val-email-preview-btn">Ver Preview</button>
+          <button class="email-back-btn" id="val-email-back1">← Voltar</button>
         </div>
       </div>
 
       <!-- Step 3: Preview -->
       <div id="val-email-step3" class="email-drawer-step" style="display:none">
-        <div class="email-drawer-section-label">Preview do e-mail</div>
-        <div id="val-email-preview-box" class="email-preview-box">Carregando…</div>
+        <div class="email-drawer-body">
+          <div id="val-email-preview-box" class="email-preview-box">Carregando…</div>
+        </div>
         <div class="email-drawer-footer">
-          <button class="ghost-btn" id="val-email-back2">← Voltar</button>
-          <button class="primary-btn" id="val-email-send-final">
+          <button class="email-send-btn" id="val-email-send-final">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             Enviar
           </button>
+          <button class="email-back-btn" id="val-email-back2">← Voltar</button>
         </div>
       </div>
 
