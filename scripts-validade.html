@@ -205,19 +205,29 @@ var VAL = {
       if (!list) return;
       var data = VAL.filtered && VAL.filtered.length ? VAL.filtered : (VAL.data || []);
       list.innerHTML = '';
+      var frag = document.createDocumentFragment();
       data.forEach(function(r, i) {
         var dias = r.diasRestantes;
-        var diasLabel = dias === null ? 'Sem prazo' : (dias < 0 ? 'Vencido há '+Math.abs(dias)+'d' : dias+'d restantes');
-        var cls = dias === null ? '' : (dias < 0 ? 'item-danger' : dias <= 30 ? 'item-warning' : dias <= 90 ? 'item-caution' : '');
-        var row = document.createElement('label');
-        row.className = 'email-item-row ' + cls;
-        row.innerHTML =
-          '<input type="checkbox" class="val-email-chk" data-idx="'+i+'" checked> ' +
-          '<span class="email-item-name">'+escHtml(r.produto)+'</span>' +
-          (r.lote ? ' <span class="email-item-meta">Lote '+escHtml(r.lote)+'</span>' : '') +
-          ' <span class="email-item-dias">'+diasLabel+'</span>';
-        list.appendChild(row);
+        var diasLabel = dias == null ? 'Sem prazo' : (dias < 0 ? 'Vencido há ' + Math.abs(dias) + 'd' : dias + 'd restantes');
+        var diasColor = dias == null ? 'var(--text-muted)' : (dias < 0 ? '#e53935' : dias <= 240 ? '#f57c00' : dias <= 450 ? '#f9a825' : 'var(--green-700)');
+        var label = document.createElement('label');
+        label.style.cssText = 'display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'val-email-chk';
+        cb.dataset.idx = i;
+        cb.checked = true;
+        cb.style.flexShrink = '0';
+        var info = document.createElement('div');
+        info.style.cssText = 'min-width:0;flex:1';
+        info.innerHTML =
+          '<div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(r.produto) + '</div>' +
+          '<div style="font-size:11px;margin-top:3px;color:' + diasColor + '">' + diasLabel + '</div>';
+        label.appendChild(cb);
+        label.appendChild(info);
+        frag.appendChild(label);
       });
+      list.appendChild(frag);
       updateCount();
     }
 
