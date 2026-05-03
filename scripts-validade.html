@@ -55,8 +55,8 @@ var VAL = {
   updateSummary: function() {
     if (!VAL.data) return;
     var total   = VAL.data.length;
-    var atencao = VAL.data.filter(function(r){ return r.diasRestantes !== null && r.diasRestantes >= 0 && r.diasRestantes <= 90; }).length;
-    var critico = VAL.data.filter(function(r){ return r.diasRestantes !== null && r.diasRestantes < 0; }).length;
+    var atencao = VAL.data.filter(function(r){ return r.status === 'Atenção'; }).length;
+    var critico = VAL.data.filter(function(r){ return r.status === 'Crítico' || r.status === 'Vencido'; }).length;
     var te = qs('#val-total'), ae = qs('#val-atencao'), ce = qs('#val-critico');
     if (te) te.textContent = total;
     if (ae) ae.textContent = atencao;
@@ -118,16 +118,16 @@ var VAL = {
 
   getCardClass: function(dias) {
     if (dias === null) return 'sem-data';
-    if (dias < 0)   return 'danger';
-    if (dias <= 30) return 'warning';
-    if (dias <= 90) return 'caution';
+    if (dias < 0)    return 'danger';
+    if (dias <= 240) return 'warning';
+    if (dias <= 450) return 'caution';
     return 'ok';
   },
   getDiasClass: function(dias) {
     if (dias === null) return '';
-    if (dias < 0)   return 'dias-crit';
-    if (dias <= 30) return 'dias-warn';
-    if (dias <= 90) return 'dias-caution';
+    if (dias < 0)    return 'dias-crit';
+    if (dias <= 240) return 'dias-warn';
+    if (dias <= 450) return 'dias-caution';
     return 'dias-ok';
   },
   getStatusClass: function(status) {

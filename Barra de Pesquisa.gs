@@ -591,13 +591,12 @@ function getValidadeData() {
       produto:         String(r[1]  || ""),
       dataProducao:    String(r[2]  || ""),
       etiqueta:        String(r[3]  || ""),
-      lote:            String(r[4]  || ""),
-      validade:        String(r[5]  || ""),
-      diasRestantes:   (r[6] !== '' && r[6] !== null && r[6] !== undefined) ? Number(r[6]) : null,
-      status:          String(r[7]  || ""),
-      precisaProduzir: String(r[8]  || ""),
-      estoque:         String(r[9]  || ""),
-      observacao:      String(r[10] || "")
+      validade:        r[4] ? (r[4] instanceof Date ? r[4].toLocaleDateString('pt-BR') : String(r[4])) : "",
+      diasRestantes:   (r[5] !== '' && r[5] !== null && r[5] !== undefined && !isNaN(Number(r[5]))) ? Number(r[5]) : null,
+      status:          String(r[6]  || ""),
+      precisaProduzir: String(r[7]  || ""),
+      estoque:         String(r[8]  || ""),
+      observacao:      String(r[9]  || "")
     });
   }
   return result;
