@@ -169,7 +169,7 @@ var VAL = {
 
   initEmailDrawer: function() {
     var drawer   = qs('#val-email-drawer');
-    var overlay  = qs('#val-email-overlay');
+    var overlay  = drawer; // clique fora do painel fecha o drawer
     var closeBtn = qs('#val-email-close');
     var step1    = qs('#val-email-step1');
     var step2    = qs('#val-email-step2');
@@ -184,8 +184,7 @@ var VAL = {
 
     function openDrawer() {
       drawer.setAttribute('aria-hidden','false');
-      drawer.style.display = '';
-      requestAnimationFrame(function(){ drawer.classList.add('open'); });
+      drawer.style.display = 'flex';
       buildList();
       showStep(1);
     }
@@ -305,7 +304,7 @@ var VAL = {
         .enviarRelatorioValidadeEmail(dest, items);
     });
 
-    if (overlay)  overlay.addEventListener('click', closeDrawer);
+    drawer.addEventListener('click', function(e){ if (e.target === drawer) closeDrawer(); });
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
 
     var emailBtn = qs('#valEmailReportBtn');
