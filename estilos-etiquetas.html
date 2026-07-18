@@ -1,0 +1,64 @@
+<style>
+.etiquetas-page { display: none; flex-direction: column; min-height: 100vh; background: var(--bg); }
+.etiquetas-page.active { display: flex; }
+
+.etq-stats { display: flex; align-items: center; padding: 16px 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.etq-stat { text-align: center; flex: 1; }
+.etq-stat-val { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.etq-stat-pending { color: #f57c00; }
+.etq-stat-found   { color: var(--green-700, #2e7d32); }
+.etq-stat-label   { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.etq-stat-divider { width: 1px; height: 36px; background: var(--border); }
+
+.etq-list-wrap { flex: 1; padding: 20px 24px; max-width: 900px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.etq-list      { display: flex; flex-direction: column; gap: 12px; }
+
+.etq-loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px; color: var(--text-muted); font-size: 14px; }
+.etq-spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--green-700, #2e7d32); border-radius: 50%; animation: etq-spin 0.7s linear infinite; }
+@keyframes etq-spin { to { transform: rotate(360deg); } }
+.etq-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px; color: var(--text-muted); text-align: center; }
+.etq-empty p { font-size: 14px; margin: 0; }
+
+.etq-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; transition: border-color 0.2s, opacity 0.2s; }
+.etq-card.etq-found { opacity: 0.5; }
+.etq-card.etq-found .etq-card-nome { text-decoration: line-through; color: var(--text-muted); }
+
+.etq-card-main   { display: flex; align-items: flex-start; gap: 14px; }
+.etq-card-info   { flex: 1; min-width: 0; }
+.etq-card-nome   { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.etq-card-qtd    { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.etq-faltam      { color: #e53935; font-weight: 600; }
+.etq-card-locais { display: flex; flex-wrap: wrap; gap: 6px; }
+.etq-loc-pill    { font-size: 11px; background: rgba(0,200,83,0.08); color: var(--green-700,#2e7d32); border: 1px solid rgba(0,200,83,0.2); border-radius: 6px; padding: 2px 8px; }
+.etq-loc-none    { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
+.etq-card-actions   { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+.etq-encontrar-wrap { display: flex; align-items: center; gap: 6px; }
+.etq-qtd-input {
+  width: 80px; padding: 5px 8px; font-size: 12px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg); color: var(--text-primary); outline: none;
+}
+.etq-qtd-input:focus { border-color: var(--green-700, #2e7d32); }
+.etq-btn { padding: 6px 12px; font-size: 12px; font-weight: 500; border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.etq-btn:hover    { opacity: 0.82; }
+.etq-btn-found    { background: var(--green-700, #2e7d32); color: #fff; }
+.etq-btn-inativar { background: var(--toggle-bg, #f0f0f0); color: var(--text-secondary); border: 1px solid var(--border); }
+.etq-check        { font-size: 12px; color: var(--green-700, #2e7d32); font-weight: 600; white-space: nowrap; }
+
+.etq-card-obs { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+.etq-obs-input {
+  width: 100%; padding: 7px 10px; font-size: 13px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg); color: var(--text-primary); outline: none;
+  font-family: inherit;
+}
+.etq-obs-input:focus { border-color: var(--green-700, #2e7d32); }
+.etq-obs-input::placeholder { color: var(--text-muted); }
+
+@media (max-width: 600px) {
+  .etq-list-wrap { padding: 14px 12px; }
+  .etq-card-main { flex-direction: column; }
+  .etq-card-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
+}
+</style>

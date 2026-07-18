@@ -601,3 +601,88 @@ function getValidadeData() {
   }
   return result;
 }
+
+var LISTA_SHEET_ID = '1eXC8YL-3SXsMKc7ICIa-WqvX_yi3RARY8ouer3yQxrQ';
+
+function getEtiquetasDoDia() {
+  var extSS      = SpreadsheetApp.openById(LISTA_SHEET_ID);
+  var listaSheet = extSS.getSheetByName('Lista');
+  if (!listaSheet || listaSheet.getLastRow() < 2) return [];
+
+  var listaData = listaSheet.getRange(2, 1, listaSheet.getLastRow() - 1, 2).getValues();
+  var pendentes = listaData
+    .filter(function(r) { return r[0]; })
+    .map(function(r) { return { produto: String(r[0]), qtdNecessaria: Number(r[1]) || 1 }; });
+
+  var ss         = SpreadsheetApp.getActiveSpreadsheet();
+  var estadoSheet = ss.getSheetByName('Etiquetas_Estado');
+  var estadoMap  = {};
+  if (estadoSheet && estadoSheet.getLastRow() >= 2) {
+    var estadoData = estadoSheet.getRange(2, 1, estadoSheet.getLastRow() - 1, 3).getValues();
+    estadoData.forEach(function(r) {
+      if (r[0]) estadoMap[String(r[0])] = { qtdEncontrada: Number(r[1]) || 0, observacao: String(r[2] || '') };
+    });
+  }
+
+  var invSheet = ss.getSheetByName('Inventário');
+  var locMap   = {};
+  if (invSheet && invSheet.getLastRow() >= 2) {
+    var dados  = invSheet.getDataRange().getValues();
+    var HEADER = 0;
+    for (var i = 1; i < dados.length; i++) {
+      for (var j = 2; j < dados[0].length; j += 2) {
+        var prod = dados[i][j]; var qtd = Number(dados[i][j + 1]); var caixa = dados[HEADER][j];
+        if (!prod || isNaN(qtd) || qtd <= 0) continue;
+        var key = String(prod);
+        if (!locMap[key]) locMap[key] = [];
+        locMap[key].push({ caixa: String(caixa), qtd: qtd });
+      }
+    }
+  }
+
+  return pendentes.map(function(item) {
+    var estado = estadoMap[item.produto] || { qtdEncontrada: 0, observacao: '' };
+    return {
+      produto:       item.produto,
+      qtdNecessaria: item.qtdNecessaria,
+      qtdEncontrada: estado.qtdEncontrada,
+      encontrado:    estado.qtdEncontrada >= item.qtdNecessaria,
+      observacao:    estado.observacao,
+      locais:        locMap[item.produto] || []
+    };
+  });
+}
+
+function salvarEstadoEtiqueta(produto, qtdEncontrada, observacao) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Etiquetas_Estado');
+  if (!sh) {
+    sh = ss.insertSheet('Etiquetas_Estado');
+    sh.getRange(1, 1, 1, 3).setValues([['Produto', 'Qtd Encontrada', 'Observação']]);
+    sh.getRange(1, 1, 1, 3).setFontWeight('bold');
+  }
+
+  var lastRow    = sh.getLastRow();
+  var existingRow = -1;
+  if (lastRow >= 2) {
+    var data = sh.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i][0]) === String(produto)) { existingRow = i + 2; break; }
+    }
+  }
+
+  if (existingRow > 0) {
+    sh.getRange(existingRow, 2, 1, 2).setValues([[qtdEncontrada, observacao]]);
+  } else {
+    sh.appendRow([produto, qtdEncontrada, observacao]);
+  }
+  return { sucesso: true };
+}
+
+function limparEtiquetasEstado() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('Etiquetas_Estado');
+  if (!sh || sh.getLastRow() < 2) return { sucesso: true };
+  sh.getRange(2, 1, sh.getLastRow() - 1, 3).clearContent();
+  return { sucesso: true };
+}

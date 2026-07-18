@@ -219,7 +219,7 @@ var ROUTER = {
     var hash = window.location.hash.replace('#', '');
     if (hash.indexOf('q=') === 0) {
       ROUTER.navigate('inventario');
-    } else if (hash === 'inventario' || hash === 'validade' || hash === 'sem-etiqueta') {
+    } else if (hash === 'inventario' || hash === 'validade' || hash === 'sem-etiqueta' || hash === 'etiquetas') {
       ROUTER.navigate(hash);
     } else {
       ROUTER.navigate('home');

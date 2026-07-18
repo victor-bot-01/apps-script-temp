@@ -1,0 +1,71 @@
+<div id="page-etiquetas" class="page etiquetas-page">
+
+  <header class="inv-header">
+    <div class="inv-header-left">
+      <button class="back-btn" data-nav="home" aria-label="Voltar para home">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Home
+      </button>
+      <div class="inv-header-title">
+        <div class="inv-header-name">Etiquetas do Dia</div>
+        <div class="inv-header-sub">Pedidos pendentes de etiqueta</div>
+      </div>
+    </div>
+    <div class="inv-header-actions">
+      <button class="icon-btn" id="etqAtualizarBtn" title="Atualizar lista">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="etqLimparBtn" title="Limpar tudo">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+      </button>
+      <button class="icon-btn theme-btn" id="etqThemeBtn" aria-label="Alternar tema">
+        <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="etq-stats">
+    <div class="etq-stat">
+      <div class="etq-stat-val" id="etqTotalCount">--</div>
+      <div class="etq-stat-label">Total</div>
+    </div>
+    <div class="etq-stat-divider"></div>
+    <div class="etq-stat">
+      <div class="etq-stat-val etq-stat-pending" id="etqPendingCount">--</div>
+      <div class="etq-stat-label">Pendentes</div>
+    </div>
+    <div class="etq-stat-divider"></div>
+    <div class="etq-stat">
+      <div class="etq-stat-val etq-stat-found" id="etqFoundCount">--</div>
+      <div class="etq-stat-label">Encontrados</div>
+    </div>
+  </div>
+
+  <div class="etq-list-wrap">
+    <div id="etqLoading" class="etq-loading" style="display:none">
+      <div class="etq-spinner"></div>
+      <span>Carregando lista...</span>
+    </div>
+    <div id="etqEmpty" class="etq-empty" style="display:none">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+      <p>Nenhum pedido pendente</p>
+    </div>
+    <div id="etqList" class="etq-list"></div>
+  </div>
+
+</div>
