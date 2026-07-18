@@ -1,6 +1,6 @@
 <div id="page-etiquetas" class="page etiquetas-page">
 
-  <header class="inv-header">
+  <header class="inv-header etq-header">
     <div class="inv-header-left">
       <button class="back-btn" data-nav="home" aria-label="Voltar para home">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -13,7 +13,13 @@
         <div class="inv-header-sub">Pedidos pendentes de etiqueta</div>
       </div>
     </div>
-    <div class="inv-header-actions">
+    <div class="etq-header-actions">
+      <button class="icon-btn" id="etqCopiarBtn" title="Copiar lista de não marcados">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
       <button class="icon-btn" id="etqAtualizarBtn" title="Atualizar lista">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"/>
@@ -36,21 +42,35 @@
     </div>
   </header>
 
+  <!-- Stats clicáveis -->
   <div class="etq-stats">
-    <div class="etq-stat">
+    <button class="etq-stat etq-stat-btn active" data-filter="all">
       <div class="etq-stat-val" id="etqTotalCount">--</div>
       <div class="etq-stat-label">Total</div>
-    </div>
+    </button>
     <div class="etq-stat-divider"></div>
-    <div class="etq-stat">
+    <button class="etq-stat etq-stat-btn" data-filter="nao-marcados">
+      <div class="etq-stat-val etq-stat-unmarked" id="etqUnmarkedCount">--</div>
+      <div class="etq-stat-label">Não Marcados</div>
+    </button>
+    <div class="etq-stat-divider"></div>
+    <button class="etq-stat etq-stat-btn" data-filter="pendentes">
       <div class="etq-stat-val etq-stat-pending" id="etqPendingCount">--</div>
       <div class="etq-stat-label">Pendentes</div>
-    </div>
+    </button>
     <div class="etq-stat-divider"></div>
-    <div class="etq-stat">
+    <button class="etq-stat etq-stat-btn" data-filter="encontrados">
       <div class="etq-stat-val etq-stat-found" id="etqFoundCount">--</div>
       <div class="etq-stat-label">Encontrados</div>
-    </div>
+    </button>
+  </div>
+
+  <!-- Filtros por local -->
+  <div class="etq-filter-bar">
+    <button class="etq-filter-btn active" data-loc-filter="all">Todos</button>
+    <button class="etq-filter-btn" data-loc-filter="pasta">Pasta</button>
+    <button class="etq-filter-btn" data-loc-filter="caixa">Caixa</button>
+    <button class="etq-filter-btn" data-loc-filter="nao-localizado">Não Localizado</button>
   </div>
 
   <div class="etq-list-wrap">
@@ -63,9 +83,21 @@
         <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
         <line x1="7" y1="7" x2="7.01" y2="7"/>
       </svg>
-      <p>Nenhum pedido pendente</p>
+      <p>Nenhum item para mostrar</p>
     </div>
     <div id="etqList" class="etq-list"></div>
+  </div>
+
+  <!-- Modal de confirmação customizado -->
+  <div id="etqConfirmModal" class="etq-modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="etq-modal">
+      <div class="etq-modal-title">Atenção</div>
+      <div class="etq-modal-msg" id="etqModalMsg"></div>
+      <div class="etq-modal-actions">
+        <button class="etq-modal-btn etq-modal-ok" id="etqModalOk">Confirmar</button>
+        <button class="etq-modal-btn etq-modal-cancel" id="etqModalCancel">Cancelar</button>
+      </div>
+    </div>
   </div>
 
 </div>
