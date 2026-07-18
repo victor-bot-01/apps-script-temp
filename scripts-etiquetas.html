@@ -5,6 +5,10 @@ var ETQ = {
   activeLocFilter:  'all',
 
   init: function() {
+    var modal = qs('#etqConfirmModal');
+    if (modal && modal.parentNode !== document.body) {
+      document.body.appendChild(modal);
+    }
     ETQ.bindButtons();
     ETQ.load();
   },
@@ -12,10 +16,12 @@ var ETQ = {
   destroy: function() {},
 
   bindButtons: function() {
+    var backBtn      = qs('#page-etiquetas .back-btn');
     var atualizarBtn = qs('#etqAtualizarBtn');
     var limparBtn    = qs('#etqLimparBtn');
     var themeBtn     = qs('#etqThemeBtn');
     var copiarBtn    = qs('#etqCopiarBtn');
+    if (backBtn)      backBtn.addEventListener('click', function() { ROUTER.navigate('home'); });
     if (atualizarBtn) atualizarBtn.addEventListener('click', function() { ETQ.load(); });
     if (limparBtn)    limparBtn.addEventListener('click', function() { ETQ.limparTudo(); });
     if (themeBtn)     themeBtn.addEventListener('click', function() { THEME.toggle(); });
@@ -127,7 +133,7 @@ var ETQ = {
     var faltam     = item.qtdNecessaria - item.qtdEncontrada;
     var locaisHtml = item.locais.length
       ? item.locais.map(function(l) {
-          return '<span class="etq-loc-pill">' + escHtml(l.caixa) + ' · ' + l.qtd + ' un.</span>';
+          return '<span class="etq-loc-pill">' + escHtml(l.caixa) + '</span>';
         }).join('')
       : '<span class="etq-loc-none">Não localizado no inventário</span>';
 
@@ -251,15 +257,26 @@ var ETQ = {
   },
 
   copiarLista: function() {
-    var naoMarcados = ETQ.data.filter(function(i) { return i.qtdEncontrada === 0; });
-    if (!naoMarcados.length) { toast('Nenhum item não marcado para copiar', 'err'); return; }
+    var semObs = ETQ.data.filter(function(i) { return i.qtdEncontrada === 0 && !i.observacao; });
+    var comObs = ETQ.data.filter(function(i) { return i.qtdEncontrada === 0 && i.observacao; });
+    if (!semObs.length && !comObs.length) { toast('Nenhum item não marcado para copiar', 'err'); return; }
 
-    var lines = ['Etiquetas do Dia', ''];
-    naoMarcados.forEach(function(item) {
-      var line = item.produto + ' — ' + item.qtdNecessaria + ' un.';
-      if (item.observacao) line += ' (obs: ' + item.observacao + ')';
-      lines.push(line);
-    });
+    var lines = [];
+    if (semObs.length) {
+      lines.push('Etiquetas do Dia');
+      lines.push('');
+      semObs.forEach(function(item) {
+        lines.push(item.produto + ' — ' + item.qtdNecessaria + ' un.');
+      });
+    }
+    if (comObs.length) {
+      if (lines.length) lines.push('');
+      lines.push('Analisar se essas etiquetas estão válidas para hoje ou vamos descartar');
+      lines.push('');
+      comObs.forEach(function(item) {
+        lines.push(item.produto + ' — ' + item.qtdNecessaria + ' un. (obs: ' + item.observacao + ')');
+      });
+    }
 
     var text = lines.join('\n');
     if (navigator.clipboard && navigator.clipboard.writeText) {
