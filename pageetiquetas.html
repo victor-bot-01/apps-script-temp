@@ -1,0 +1,114 @@
+<div id="page-etiquetas" class="page etiquetas-page">
+
+  <header class="inv-header etq-header">
+    <div class="inv-header-left">
+      <button class="back-btn" data-nav="home" aria-label="Voltar para home">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Home
+      </button>
+      <div class="inv-header-title">
+        <div class="inv-header-name">Etiquetas do Dia</div>
+        <div class="inv-header-sub">Pedidos pendentes de etiqueta</div>
+      </div>
+    </div>
+    <div class="etq-header-actions">
+      <button class="icon-btn" id="etqCopiarBtn" title="Copiar lista de pendentes">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="etqAtualizarBtn" title="Atualizar lista">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="etqLimparBtn" title="Limpar tudo">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+      </button>
+      <button class="icon-btn theme-btn" id="etqThemeBtn" aria-label="Alternar tema">
+        <svg class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats clicáveis -->
+  <div class="etq-stats">
+    <button class="etq-stat etq-stat-btn active" data-filter="all">
+      <div class="etq-stat-val" id="etqTotalCount">--</div>
+      <div class="etq-stat-label">Total</div>
+    </button>
+    <div class="etq-stat-divider"></div>
+    <button class="etq-stat etq-stat-btn" data-filter="nao-marcados">
+      <div class="etq-stat-val etq-stat-unmarked" id="etqUnmarkedCount">--</div>
+      <div class="etq-stat-label">Não Marcados</div>
+    </button>
+    <div class="etq-stat-divider"></div>
+    <button class="etq-stat etq-stat-btn" data-filter="pendentes">
+      <div class="etq-stat-val etq-stat-pending" id="etqPendingCount">--</div>
+      <div class="etq-stat-label">Pendentes</div>
+    </button>
+    <div class="etq-stat-divider"></div>
+    <button class="etq-stat etq-stat-btn" data-filter="encontrados">
+      <div class="etq-stat-val etq-stat-found" id="etqFoundCount">--</div>
+      <div class="etq-stat-label">Encontrados</div>
+    </button>
+  </div>
+
+  <!-- Visor de pastas necessárias -->
+  <div class="etq-pastas-visor" id="etqPastasVisor">
+    <span class="etq-pastas-label">Buscar em:</span>
+    <span class="etq-pastas-vazio" id="etqPastasVazio">Carregando...</span>
+  </div>
+
+  <!-- Filtros por local -->
+  <div class="etq-filter-bar">
+    <button class="etq-filter-btn active" data-loc-filter="all">Todos</button>
+    <button class="etq-filter-btn" data-loc-filter="pasta">Pasta</button>
+    <button class="etq-filter-btn" data-loc-filter="caixa">Caixa</button>
+    <button class="etq-filter-btn" data-loc-filter="nao-localizado">Não Localizado</button>
+  </div>
+
+  <!-- Campo de pesquisa -->
+  <div class="etq-search-bar">
+    <input class="etq-search-input" id="etqSearchInput" type="text" placeholder="Pesquisar produto...">
+  </div>
+
+  <div class="etq-list-wrap">
+    <div id="etqLoading" class="etq-loading" style="display:none">
+      <div class="etq-spinner"></div>
+      <span>Carregando lista...</span>
+    </div>
+    <div id="etqEmpty" class="etq-empty" style="display:none">
+      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+      <p>Nenhum item para mostrar</p>
+    </div>
+    <div id="etqList" class="etq-list"></div>
+  </div>
+
+  <!-- Modal de confirmação customizado -->
+  <div id="etqConfirmModal" class="etq-modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="etq-modal">
+      <div class="etq-modal-title">Atenção</div>
+      <div class="etq-modal-msg" id="etqModalMsg"></div>
+      <div class="etq-modal-actions">
+        <button class="etq-modal-btn etq-modal-ok" id="etqModalOk">Confirmar</button>
+        <button class="etq-modal-btn etq-modal-cancel" id="etqModalCancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
