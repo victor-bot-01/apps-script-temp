@@ -1,0 +1,468 @@
+<script>
+var ETQ = {
+  data: [],
+  activeStatFilter: 'all',
+  activeLocFilter:  'all',
+  searchTerm:       '',
+
+  init: function() {
+    var modal = qs('#etqConfirmModal');
+    if (modal && modal.parentNode !== document.body) {
+      document.body.appendChild(modal);
+    }
+    ETQ.bindButtons();
+    ETQ.load();
+  },
+
+  destroy: function() {},
+
+  bindButtons: function() {
+    var backBtn      = qs('#page-etiquetas .back-btn');
+    var atualizarBtn = qs('#etqAtualizarBtn');
+    var limparBtn    = qs('#etqLimparBtn');
+    var themeBtn     = qs('#etqThemeBtn');
+    var copiarBtn    = qs('#etqCopiarBtn');
+    var searchInput  = qs('#etqSearchInput');
+
+    if (backBtn)      backBtn.addEventListener('click', function() { ROUTER.navigate('home'); });
+    if (atualizarBtn) atualizarBtn.addEventListener('click', function() { ETQ.load(); });
+    if (limparBtn)    limparBtn.addEventListener('click', function() { ETQ.limparTudo(); });
+    if (themeBtn)     themeBtn.addEventListener('click', function() { THEME.toggle(); });
+    if (copiarBtn)    copiarBtn.addEventListener('click', function() { ETQ.copiarLista(); });
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        ETQ.searchTerm = searchInput.value.trim().toLowerCase();
+        ETQ.render();
+      });
+    }
+
+    qsa('.etq-stat-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        ETQ.activeStatFilter = btn.dataset.filter || 'all';
+        qsa('.etq-stat-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        ETQ.render();
+      });
+    });
+
+    qsa('.etq-filter-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        ETQ.activeLocFilter = btn.dataset.locFilter || 'all';
+        qsa('.etq-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        ETQ.render();
+      });
+    });
+  },
+
+  load: function() {
+    var loading = qs('#etqLoading');
+    var list    = qs('#etqList');
+    var empty   = qs('#etqEmpty');
+    if (loading) loading.style.display = 'flex';
+    if (list)    list.innerHTML = '';
+    if (empty)   empty.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (loading) loading.style.display = 'none';
+        ETQ.data = data || [];
+        ETQ.render();
+      })
+      .withFailureHandler(function(err) {
+        if (loading) loading.style.display = 'none';
+        toast('Erro ao carregar: ' + (err.message || err), 'err');
+      })
+      .getEtiquetasDoDia();
+  },
+
+  getLocPriority: function(item) {
+    var pasta = item.locais.filter(function(l) { return l.caixa.toLowerCase().indexOf('pasta') === 0; });
+    var caixa = item.locais.filter(function(l) { return l.caixa.toLowerCase().indexOf('caixa') === 0; });
+    if (pasta.length) return { type: 0, name: pasta[0].caixa };
+    if (caixa.length) return { type: 1, name: caixa[0].caixa };
+    return { type: 2, name: '' };
+  },
+
+  matchesLocFilter: function(item) {
+    var f = ETQ.activeLocFilter;
+    if (f === 'all') return true;
+    if (f === 'nao-localizado') return item.locais.length === 0;
+    if (f === 'pasta') return item.locais.some(function(l) { return l.caixa.toLowerCase().indexOf('pasta') === 0; });
+    if (f === 'caixa') return item.locais.some(function(l) { return l.caixa.toLowerCase().indexOf('caixa') === 0; });
+    return true;
+  },
+
+  matchesStatFilter: function(item) {
+    var f = ETQ.activeStatFilter;
+    if (f === 'all') return true;
+    if (f === 'nao-marcados')  return item.qtdEncontrada === 0;
+    if (f === 'pendentes')     return !item.encontrado;
+    if (f === 'encontrados')   return item.encontrado;
+    return true;
+  },
+
+  matchesSearch: function(item) {
+    if (!ETQ.searchTerm) return true;
+    return item.produto.toLowerCase().indexOf(ETQ.searchTerm) !== -1;
+  },
+
+  renderPastasVisor: function() {
+    var visor = qs('#etqPastasVisor');
+    var vazio = qs('#etqPastasVazio');
+    if (!visor) return;
+
+    var pastasSet = {};
+    ETQ.data.forEach(function(item) {
+      if (item.encontrado) return;
+      item.locais.forEach(function(l) {
+        if (l.caixa.toLowerCase().indexOf('pasta') === 0) {
+          pastasSet[l.caixa] = true;
+        }
+      });
+    });
+
+    var pastas = Object.keys(pastasSet).sort(function(a, b) {
+      return a.localeCompare(b, 'pt-BR');
+    });
+
+    qsa('.etq-pasta-chip', visor).forEach(function(el) { el.parentNode.removeChild(el); });
+
+    if (!pastas.length) {
+      if (vazio) { vazio.textContent = 'Nenhuma pasta identificada'; vazio.hidden = false; }
+      return;
+    }
+
+    if (vazio) vazio.hidden = true;
+    var frag = document.createDocumentFragment();
+    pastas.forEach(function(p) {
+      var chip = document.createElement('span');
+      chip.className = 'etq-pasta-chip';
+      chip.textContent = p;
+      frag.appendChild(chip);
+    });
+    visor.appendChild(frag);
+  },
+
+  render: function() {
+    var list  = qs('#etqList');
+    var empty = qs('#etqEmpty');
+    if (!list) return;
+    list.innerHTML = '';
+
+    var filtered = ETQ.data.filter(function(item) {
+      return ETQ.matchesStatFilter(item) && ETQ.matchesLocFilter(item) && ETQ.matchesSearch(item);
+    });
+
+    ETQ.renderPastasVisor();
+    ETQ.updateStats();
+
+    if (!filtered.length) {
+      if (empty) empty.style.display = 'flex';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    var sorted = filtered.slice().sort(function(a, b) {
+      if (a.encontrado !== b.encontrado) return a.encontrado ? 1 : -1;
+      var locA = ETQ.getLocPriority(a);
+      var locB = ETQ.getLocPriority(b);
+      if (locA.type !== locB.type) return locA.type - locB.type;
+      if (locA.name !== locB.name) return locA.name.localeCompare(locB.name, 'pt-BR');
+      return a.produto.localeCompare(b.produto, 'pt-BR');
+    });
+
+    var frag = document.createDocumentFragment();
+    sorted.forEach(function(item) { frag.appendChild(ETQ.buildCard(item)); });
+    list.appendChild(frag);
+  },
+
+  buildCard: function(item) {
+    var card = document.createElement('div');
+    card.className = 'etq-card' + (item.encontrado ? ' etq-found' : '');
+    card.dataset.produto = item.produto;
+
+    var faltam     = item.qtdNecessaria - item.qtdEncontrada;
+    var locaisHtml = item.locais.length
+      ? item.locais.map(function(l) {
+          return '<span class="etq-loc-pill">' + escHtml(l.caixa) + '</span>';
+        }).join('')
+      : '<span class="etq-loc-none">Não localizado no inventário</span>';
+
+    var parteHtml = item.parte > 0
+      ? '<span class="etq-parte-badge">Parte ' + item.parte + '</span>'
+      : '';
+
+    var pedirBtnHtml = item.pedidoMais
+      ? '<button class="etq-btn etq-btn-pedir" disabled>&#10003; Pedido</button>'
+      : '<button class="etq-btn etq-btn-pedir">Pedir Mais</button>';
+
+    card.innerHTML =
+      '<div class="etq-card-main">' +
+        '<div class="etq-card-info">' +
+          '<div class="etq-card-nome">' + escHtml(item.produto) + '</div>' +
+          (parteHtml ? '<div class="etq-card-parte">' + parteHtml + '</div>' : '') +
+          '<div class="etq-card-qtd">Necessário: <strong>' + item.qtdNecessaria + '</strong>' +
+            (item.qtdEncontrada > 0 && !item.encontrado
+              ? ' · Encontrado: <strong>' + item.qtdEncontrada + '</strong> · <span class="etq-faltam">Faltam: ' + faltam + '</span>'
+              : '') +
+          '</div>' +
+          '<div class="etq-card-locais">' + locaisHtml + '</div>' +
+        '</div>' +
+        '<div class="etq-card-actions">' +
+          (!item.encontrado
+            ? '<div class="etq-encontrar-wrap">' +
+                '<button class="etq-btn etq-btn-found">Encontrado</button>' +
+                '<input class="etq-qtd-input" type="number" min="1" max="' + item.qtdNecessaria + '" placeholder="Qtd">' +
+              '</div>'
+            : '<div class="etq-encontrar-wrap">' +
+                '<span class="etq-check">&#10003; Encontrado</span>' +
+                '<button class="etq-btn etq-btn-desfazer">Desfazer</button>' +
+              '</div>') +
+          pedirBtnHtml +
+          '<button class="etq-btn etq-btn-inativar">Inativar</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="etq-card-obs">' +
+        '<input class="etq-obs-input" type="text" placeholder="Observação..." value="' + escHtml(item.observacao) + '">' +
+      '</div>';
+
+    var foundBtn = card.querySelector('.etq-btn-found');
+    if (foundBtn) {
+      foundBtn.addEventListener('click', function() {
+        var qtdInput = card.querySelector('.etq-qtd-input');
+        var raw      = qtdInput ? qtdInput.value.trim() : '';
+        var qtdEnc   = raw ? Number(raw) : item.qtdNecessaria;
+        if (isNaN(qtdEnc) || qtdEnc <= 0) qtdEnc = item.qtdNecessaria;
+        ETQ.marcarEncontrado(item.produto, qtdEnc);
+      });
+    }
+
+    var desfazerBtn = card.querySelector('.etq-btn-desfazer');
+    if (desfazerBtn) {
+      desfazerBtn.addEventListener('click', function() { ETQ.desfazer(item.produto); });
+    }
+
+    var inativarBtn = card.querySelector('.etq-btn-inativar');
+    if (inativarBtn) {
+      inativarBtn.addEventListener('click', function() { ETQ.inativar(item.produto, item.locais); });
+    }
+
+    var pedirBtn = card.querySelector('.etq-btn-pedir');
+    if (pedirBtn && !item.pedidoMais) {
+      pedirBtn.addEventListener('click', function() { ETQ.pedirMais(item, pedirBtn); });
+    }
+
+    var obsInput = card.querySelector('.etq-obs-input');
+    if (obsInput) {
+      obsInput.addEventListener('blur', function() { ETQ.salvarObs(item.produto, obsInput.value); });
+    }
+
+    return card;
+  },
+
+  marcarEncontrado: function(produto, qtdEncontrada) {
+    var obs = '';
+    ETQ.data.forEach(function(item) {
+      if (item.produto === produto) {
+        item.qtdEncontrada = qtdEncontrada;
+        item.encontrado    = qtdEncontrada >= item.qtdNecessaria;
+        obs = item.observacao;
+      }
+    });
+    ETQ.render();
+    google.script.run
+      .withFailureHandler(function(err) { toast('Erro ao salvar: ' + (err.message || err), 'err'); })
+      .salvarEstadoEtiqueta(produto, qtdEncontrada, obs);
+    toast('Marcado como encontrado', 'ok');
+  },
+
+  desfazer: function(produto) {
+    var obs = '';
+    ETQ.data.forEach(function(item) {
+      if (item.produto === produto) {
+        item.qtdEncontrada = 0;
+        item.encontrado    = false;
+        obs = item.observacao;
+      }
+    });
+    ETQ.render();
+    google.script.run
+      .withFailureHandler(function(err) { toast('Erro ao desfazer: ' + (err.message || err), 'err'); })
+      .salvarEstadoEtiqueta(produto, 0, obs);
+    toast('Desmarcado', 'ok');
+  },
+
+  inativar: function(produto, locais) {
+    if (!locais || !locais.length) { toast('Produto não encontrado no inventário', 'err'); return; }
+    var caixa = locais[0].caixa;
+    google.script.run
+      .withSuccessHandler(function() { toast(produto + ' inativado', 'ok'); })
+      .withFailureHandler(function(err) { toast('Erro: ' + (err.message || err), 'err'); })
+      .setProductStatus(produto, caixa, false);
+  },
+
+  pedirMais: function(item, btn) {
+    btn.disabled    = true;
+    btn.textContent = '✓ Pedido';
+    var locPriority = ETQ.getLocPriority(item);
+    var local       = locPriority.name || '';
+    ETQ.data.forEach(function(d) { if (d.produto === item.produto) d.pedidoMais = true; });
+    google.script.run
+      .withSuccessHandler(function() { toast('Adicionado a Pedidos de Produção', 'ok'); })
+      .withFailureHandler(function(err) {
+        btn.disabled    = false;
+        btn.textContent = 'Pedir Mais';
+        ETQ.data.forEach(function(d) { if (d.produto === item.produto) d.pedidoMais = false; });
+        toast('Erro ao pedir: ' + (err.message || err), 'err');
+      })
+      .pedirMaisEtiqueta(item.produto, item.qtdNecessaria, local);
+  },
+
+  salvarObs: function(produto, obs) {
+    var qtd = 0;
+    ETQ.data.forEach(function(item) {
+      if (item.produto === produto) { qtd = item.qtdEncontrada; item.observacao = obs; }
+    });
+    google.script.run
+      .withFailureHandler(function() { toast('Erro ao salvar observação', 'err'); })
+      .salvarEstadoEtiqueta(produto, qtd, obs);
+  },
+
+  limparTudo: function() {
+    ETQ.etqConfirm('Isso irá apagar todo o progresso e todas as partes. Deseja continuar?', function() {
+      ETQ.data.forEach(function(item) {
+        item.qtdEncontrada = 0;
+        item.encontrado    = false;
+        item.observacao    = '';
+        item.parte         = 0;
+      });
+      ETQ.render();
+      google.script.run
+        .withSuccessHandler(function() { toast('Estado limpo', 'ok'); })
+        .withFailureHandler(function(err) { toast('Erro: ' + (err.message || err), 'err'); })
+        .limparEtiquetasEstado();
+      google.script.run
+        .withFailureHandler(function(err) { toast('Erro ao limpar partes: ' + (err.message || err), 'err'); })
+        .limparPartesEtiqueta();
+    });
+  },
+
+  copiarLista: function() {
+    var pendentes = ETQ.data.filter(function(i) { return !i.encontrado; });
+    if (!pendentes.length) { toast('Nenhum item pendente para copiar', 'err'); return; }
+
+    ETQ.etqModal(
+      'Deseja dividir a lista em partes?\nOs itens pendentes sem parte formarão uma nova parte.',
+      'Sim, dividir',
+      function() {
+        var semParte = pendentes.filter(function(i) { return !i.parte || i.parte === 0; });
+        if (!semParte.length) {
+          toast('Não há itens novos para criar uma nova parte', 'err');
+          return;
+        }
+        var produtos = semParte.map(function(i) { return i.produto; });
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (!result || !result.sucesso) { toast('Erro ao criar parte', 'err'); return; }
+            var numParte = result.numParte;
+            ETQ.data.forEach(function(item) {
+              if (produtos.indexOf(item.produto) !== -1) item.parte = numParte;
+            });
+            ETQ.render();
+            ETQ._copiarItens(semParte, numParte);
+          })
+          .withFailureHandler(function(err) { toast('Erro: ' + (err.message || err), 'err'); })
+          .criarParteEtiqueta(produtos);
+      },
+      'Não, copiar tudo',
+      function() {
+        ETQ._copiarItens(pendentes, null);
+      }
+    );
+  },
+
+  _copiarItens: function(itens, numParte) {
+    var semObs = itens.filter(function(i) { return !i.observacao; });
+    var comObs = itens.filter(function(i) { return  i.observacao; });
+    var lines  = [];
+    var titulo = numParte ? 'Parte ' + numParte + ' — Etiquetas do Dia' : 'Etiquetas do Dia';
+
+    if (semObs.length) {
+      lines.push(titulo);
+      lines.push('');
+      semObs.forEach(function(item) {
+        var faltam = item.qtdNecessaria - item.qtdEncontrada;
+        lines.push(item.qtdEncontrada > 0
+          ? item.produto + ' — faltam ' + faltam + ' un. (encontrado ' + item.qtdEncontrada + ' de ' + item.qtdNecessaria + ')'
+          : item.produto + ' — ' + item.qtdNecessaria + ' un.');
+      });
+    }
+    if (comObs.length) {
+      if (lines.length) lines.push('');
+      if (!semObs.length) { lines.push(titulo); lines.push(''); }
+      lines.push('Analisar se essas etiquetas estão válidas para hoje ou vamos descartar');
+      lines.push('');
+      comObs.forEach(function(item) {
+        var faltam = item.qtdNecessaria - item.qtdEncontrada;
+        lines.push(item.qtdEncontrada > 0
+          ? item.produto + ' — faltam ' + faltam + ' un. (obs: ' + item.observacao + ')'
+          : item.produto + ' — ' + item.qtdNecessaria + ' un. (obs: ' + item.observacao + ')');
+      });
+    }
+
+    var text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() { toast('Lista copiada', 'copy'); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy'); toast('Lista copiada', 'copy'); } catch(e) { toast('Erro ao copiar', 'err'); }
+      document.body.removeChild(ta);
+    }
+  },
+
+  etqModal: function(msg, okLabel, onOk, cancelLabel, onCancel) {
+    var modal     = qs('#etqConfirmModal');
+    var msgEl     = qs('#etqModalMsg');
+    var okBtn     = qs('#etqModalOk');
+    var cancelBtn = qs('#etqModalCancel');
+    if (!modal) { if (onOk) onOk(); return; }
+    if (msgEl)     msgEl.textContent     = msg;
+    if (okBtn)     okBtn.textContent     = okLabel     || 'Confirmar';
+    if (cancelBtn) cancelBtn.textContent = cancelLabel || 'Cancelar';
+    modal.style.display = 'flex';
+
+    function close() {
+      modal.style.display = 'none';
+      if (okBtn)     okBtn.onclick     = null;
+      if (cancelBtn) cancelBtn.onclick = null;
+      modal.onclick = null;
+    }
+    if (okBtn)     okBtn.onclick     = function() { close(); if (onOk)     onOk();     };
+    if (cancelBtn) cancelBtn.onclick = function() { close(); if (onCancel) onCancel(); };
+    modal.onclick = function(e) { if (e.target === modal) close(); };
+  },
+
+  etqConfirm: function(msg, onOk) {
+    ETQ.etqModal(msg, 'Confirmar', onOk, 'Cancelar', null);
+  },
+
+  updateStats: function() {
+    var total    = ETQ.data.length;
+    var found    = ETQ.data.filter(function(i) { return i.encontrado; }).length;
+    var pending  = ETQ.data.filter(function(i) { return !i.encontrado; }).length;
+    var unmarked = ETQ.data.filter(function(i) { return i.qtdEncontrada === 0; }).length;
+    var t = qs('#etqTotalCount'), u = qs('#etqUnmarkedCount'),
+        p = qs('#etqPendingCount'), f = qs('#etqFoundCount');
+    if (t) t.textContent = total;
+    if (u) u.textContent = unmarked;
+    if (p) p.textContent = pending;
+    if (f) f.textContent = found;
+  }
+};
+
+if (typeof PAGES === 'undefined') var PAGES = {};
+PAGES['etiquetas'] = ETQ;
+</script>
