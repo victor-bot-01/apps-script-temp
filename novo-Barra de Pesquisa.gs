@@ -593,7 +593,7 @@ function getValidadeData() {
 // ETIQUETAS
 // ─────────────────────────────────────────────
 
-var LISTA_SHEET_ID = '1eXC8YL-3SXsMKc7ICIa-WqvX_yi3RARY8ouer3yQxrQ';
+var LISTA_SHEET_ID = '15ueYlLK9JoLn_lXcP6JiFxs8Ds22KF3Km_FD2cCUMW4';
 
 // Helper: lê Etiquetas_Config como mapa chave→valor
 function _getConfigMap(ss) {
