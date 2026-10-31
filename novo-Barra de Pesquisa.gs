@@ -1174,7 +1174,7 @@ function pedirMaisEtiqueta(produto, qtdNecessaria, local) {
   sh.appendRow([produto, qtdNecessaria || 1, now, local || '', reativacaoDate]);
 
   // Envia e-mail solicitando produção
-  var emailDestino = 'victor@gigaimports.com';
+  var emailDestino = 'nelson@gigaimports.com,administrador@gigaimports.com';
   var assunto = 'Solicitação de Produção de Etiquetas — ' + produto;
   var htmlBody =
     '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
